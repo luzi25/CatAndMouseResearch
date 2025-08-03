@@ -166,7 +166,7 @@
             font-weight: 600;
             color: #7FE9E1;
             text-align: center;
-            letter-spacing: 6px;
+            letter-spacing: 2px;
             text-transform: uppercase;
         }
 
@@ -281,6 +281,13 @@
             overflow-y: auto;
             overflow-x: hidden;
         }
+        
+        /* Specific constraint for Settings dropdown to prevent footer movement */
+        #settingsContent:not(.collapsed) {
+            max-height: 40vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
 
         .legend .scramble-char {
             display: inline-block;
@@ -311,6 +318,20 @@
 
         .param-item {
             margin-bottom: 0.3rem;
+        }
+        
+        /* Compact settings sections */
+        .settings-section-compact .param-item {
+            margin-bottom: 0.15rem;
+        }
+        
+        .settings-section-compact .param-item label {
+            font-size: 0.7rem;
+            margin-bottom: 0.1rem;
+        }
+        
+        .settings-section-compact .speed-display {
+            font-size: 0.6rem;
         }
 
         .param-row {
@@ -500,6 +521,102 @@
             animation: none !important;
         }
 
+        /* Full-page CRT barrel distortion effect */
+        .crt-barrel-distortion {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+            background: transparent;
+        }
+
+        .crt-barrel-distortion::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(ellipse 120% 100% at center, 
+                    transparent 0%, 
+                    transparent 65%, 
+                    rgba(0,0,0,0.03) 75%, 
+                    rgba(0,0,0,0.08) 85%, 
+                    rgba(0,0,0,0.15) 92%, 
+                    rgba(0,0,0,0.25) 100%
+                );
+            mix-blend-mode: multiply;
+        }
+
+        /* Apply the barrel distortion to the entire body */
+        body.crt-distortion-enabled {
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+        body.crt-distortion-enabled .container {
+            transform: 
+                perspective(800px) 
+                rotateX(0.5deg) 
+                scale3d(1.02, 1.015, 1);
+            filter: 
+                contrast(1.02) 
+                brightness(0.98);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        /* Subtle lens distortion using CSS transforms */
+        .crt-lens-effect {
+            position: fixed;
+            top: -2%;
+            left: -2%;
+            width: 104%;
+            height: 104%;
+            pointer-events: none;
+            z-index: 999;
+            background: 
+                radial-gradient(ellipse 80% 60% at center, 
+                    transparent 0%, 
+                    transparent 50%, 
+                    rgba(255,255,255,0.01) 70%, 
+                    rgba(255,255,255,0.02) 85%, 
+                    rgba(0,0,0,0.03) 95%, 
+                    rgba(0,0,0,0.06) 100%
+                );
+            mix-blend-mode: overlay;
+            border-radius: 12px;
+        }
+
+        /* Enhanced CRT warp when enabled */
+        .crt-warp-enhanced {
+            transform: 
+                perspective(1200px) 
+                rotateX(1deg) 
+                rotateY(0.3deg)
+                scale3d(1.01, 1.01, 1);
+            border-radius: 15px;
+            box-shadow: 
+                inset 0 0 0 1px rgba(255,255,255,0.05),
+                inset 0 0 50px rgba(0,0,0,0.1),
+                0 0 0 2px rgba(0,0,0,0.2);
+        }
+
+        /* Subtle screen curvature effect */
+        .crt-screen-curve {
+            clip-path: 
+                polygon(
+                    1% 2%, 
+                    99% 2%, 
+                    99.5% 98%, 
+                    0.5% 98%
+                );
+        }
+
         .btn-primary {
             background: #4B566A;
             color: #7FE9E1;
@@ -609,7 +726,7 @@
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
-            z-index: 1000;
+            z-index: 10000;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -685,6 +802,10 @@
 </head>
 <body>
     <div class="crt-overlay"></div>
+    
+    <!-- CRT Barrel Distortion Overlays -->
+    <div class="crt-barrel-distortion" id="crtBarrelDistortion"></div>
+    <div class="crt-lens-effect" id="crtLensEffect"></div>
     
     <header class="header">
         <h1>LUMON RESEARCH</h1>
@@ -909,9 +1030,15 @@
                             </div>
                             
                             <div class="param-item">
-                                <label for="crtWarp">Screen Warp</label>
+                                <label for="crtWarp">Fisheye Lens</label>
                                 <input type="range" id="crtWarp" min="0" max="5" step="0.1" value="0">
                                 <div class="speed-display" id="warpDisplay">0</div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <label for="crtBarrel">Barrel Distortion</label>
+                                <input type="range" id="crtBarrel" min="0" max="10" step="0.5" value="0">
+                                <div class="speed-display" id="barrelDisplay">0</div>
                             </div>
                         </div>
                         
@@ -1005,148 +1132,150 @@
                             </div>
                         </div>
                         
+                        
                         <!-- Typography Controls -->
-                        <div class="param-group">
-                            <div class="collapsible-title collapsed" id="typographyToggle">Typography Controls</div>
+                        <div class="settings-section-compact" style="margin-bottom: 0.5rem;">
+                            <div class="collapsible-title collapsed" id="typographyToggle" style="font-size: 0.7rem; margin-bottom: 0.3rem; color: #7FE9E1; cursor: pointer;">TYPOGRAPHY</div>
                             <div class="collapsible-content collapsed" id="typographyContent">
-                                
-                                <div class="param-item">
-                                    <label for="showValueDisplays">Show Value Displays</label>
-                                    <input type="checkbox" id="showValueDisplays" class="custom-checkbox">
-                                </div>
-                                
-                                <div class="param-item">
-                                    <label for="gridCharSize">Grid Character Size</label>
-                                    <input type="range" id="gridCharSize" min="0.5" max="3" step="0.1" value="1.6">
-                                    <div class="speed-display" id="gridCharDisplay">1.6rem</div>
-                                </div>
-                                
-                                <div class="param-item">
-                                    <label for="headerTitleSize">Main Header</label>
-                                    <input type="range" id="headerTitleSize" min="2" max="6" step="0.1" value="5.7">
-                                    <div class="speed-display" id="headerTitleDisplay">5.7rem</div>
-                                </div>
-                                
-                                <div class="param-item">
-                                    <label for="sectionTitleSize">Section Titles</label>
-                                    <input type="range" id="sectionTitleSize" min="1" max="3" step="0.1" value="1.4">
-                                    <div class="speed-display" id="sectionTitleDisplay">1.4rem</div>
-                                </div>
-                                
-                                <div class="param-item">
-                                    <label for="collapsibleTitleSize">Collapsible Titles</label>
-                                    <input type="range" id="collapsibleTitleSize" min="0.8" max="2" step="0.1" value="0.9">
-                                    <div class="speed-display" id="collapsibleTitleDisplay">0.9rem</div>
-                                </div>
-                                
-                                <div class="param-item">
-                                    <label for="subsectionSize">Subsection Headers</label>
-                                    <input type="range" id="subsectionSize" min="0.6" max="1.5" step="0.1" value="1">
-                                    <div class="speed-display" id="subsectionDisplay">1rem</div>
-                                </div>
-                                
-                                <div class="param-item">
-                                    <label for="paramLabelSize">Parameter Labels</label>
-                                    <input type="range" id="paramLabelSize" min="0.5" max="1.2" step="0.1" value="0.7">
-                                    <div class="speed-display" id="paramLabelDisplay">0.7rem</div>
-                                </div>
-                                
-                                <div class="param-item">
-                                    <label for="paramRowSize">Parameter Rows</label>
-                                    <input type="range" id="paramRowSize" min="0.5" max="1.2" step="0.1" value="0.8">
-                                    <div class="speed-display" id="paramRowDisplay">0.8rem</div>
-                                </div>
-                                
-                                <div class="param-item">
-                                    <label for="buttonSize">Buttons</label>
-                                    <input type="range" id="buttonSize" min="0.5" max="1.2" step="0.1" value="0.7">
-                                    <div class="speed-display" id="buttonDisplay">0.7rem</div>
-                                </div>
-                                
-                                <div class="param-item">
-                                    <label for="statsSize">Stats/Analytics</label>
-                                    <input type="range" id="statsSize" min="0.5" max="1.2" step="0.1" value="0.8">
-                                    <div class="speed-display" id="statsDisplay">0.8rem</div>
-                                </div>
-                                
-                                <div class="param-item">
-                                    <label for="speedDisplaySize">Value Displays</label>
-                                    <input type="range" id="speedDisplaySize" min="0.4" max="1" step="0.1" value="0.8">
-                                    <div class="speed-display" id="speedDisplayDisplay">0.8rem</div>
-                                </div>
-                                
-                                <div class="param-item">
-                                    <label for="legendSize">Game Legend/Footer</label>
-                                    <input type="range" id="legendSize" min="0.6" max="1.5" step="0.1" value="0.9">
-                                    <div class="speed-display" id="legendDisplay">0.9rem</div>
-                                </div>
-                                
-                                <div class="param-item">
-                                    <label for="numberInputSize">Number Inputs</label>
-                                    <input type="range" id="numberInputSize" min="0.4" max="1" step="0.1" value="0.8">
-                                    <div class="speed-display" id="numberInputDisplay">0.8rem</div>
-                                </div>
-                                
-                                <div style="margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid #4B566A;">
-                                    <button class="btn btn-secondary" id="resetTypography">Reset to Defaults</button>
-                                </div>
+                            
+                            <div class="param-item">
+                                <label for="showValueDisplays">Show Value Displays</label>
+                                <input type="checkbox" id="showValueDisplays" class="custom-checkbox">
+                            </div>
+                            
+                            <div class="param-item">
+                                <label for="gridCharSize">Grid Character Size</label>
+                                <input type="range" id="gridCharSize" min="0.5" max="3" step="0.1" value="1.6">
+                                <div class="speed-display" id="gridCharDisplay">1.6rem</div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <label for="headerTitleSize">Main Header</label>
+                                <input type="range" id="headerTitleSize" min="2" max="6" step="0.1" value="5.7">
+                                <div class="speed-display" id="headerTitleDisplay">5.7rem</div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <label for="sectionTitleSize">Section Titles</label>
+                                <input type="range" id="sectionTitleSize" min="1" max="3" step="0.1" value="1.4">
+                                <div class="speed-display" id="sectionTitleDisplay">1.4rem</div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <label for="collapsibleTitleSize">Collapsible Titles</label>
+                                <input type="range" id="collapsibleTitleSize" min="0.8" max="2" step="0.1" value="0.9">
+                                <div class="speed-display" id="collapsibleTitleDisplay">0.9rem</div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <label for="subsectionSize">Subsection Headers</label>
+                                <input type="range" id="subsectionSize" min="0.6" max="1.5" step="0.1" value="1">
+                                <div class="speed-display" id="subsectionDisplay">1rem</div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <label for="paramLabelSize">Parameter Labels</label>
+                                <input type="range" id="paramLabelSize" min="0.5" max="1.2" step="0.1" value="0.7">
+                                <div class="speed-display" id="paramLabelDisplay">0.7rem</div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <label for="paramRowSize">Parameter Rows</label>
+                                <input type="range" id="paramRowSize" min="0.5" max="1.2" step="0.1" value="0.8">
+                                <div class="speed-display" id="paramRowDisplay">0.8rem</div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <label for="buttonSize">Buttons</label>
+                                <input type="range" id="buttonSize" min="0.5" max="1.2" step="0.1" value="0.7">
+                                <div class="speed-display" id="buttonDisplay">0.7rem</div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <label for="statsSize">Stats/Analytics</label>
+                                <input type="range" id="statsSize" min="0.5" max="1.2" step="0.1" value="0.8">
+                                <div class="speed-display" id="statsDisplay">0.8rem</div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <label for="speedDisplaySize">Value Displays</label>
+                                <input type="range" id="speedDisplaySize" min="0.4" max="1" step="0.1" value="0.8">
+                                <div class="speed-display" id="speedDisplayDisplay">0.8rem</div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <label for="legendSize">Game Legend/Footer</label>
+                                <input type="range" id="legendSize" min="0.6" max="1.5" step="0.1" value="0.9">
+                                <div class="speed-display" id="legendDisplay">0.9rem</div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <label for="numberInputSize">Number Inputs</label>
+                                <input type="range" id="numberInputSize" min="0.4" max="1" step="0.1" value="0.8">
+                                <div class="speed-display" id="numberInputDisplay">0.8rem</div>
+                            </div>
+                            
                             </div>
                         </div>
 
-                        <!-- Character Customization Settings -->
-                        <div class="param-group">
-                            <div class="collapsible-title collapsed" id="characterToggle">Character Customization</div>
-                            <div class="collapsible-content collapsed" id="characterContent">
-                                
-                                <div class="param-item">
-                                    <div class="param-row">
-                                        <span class="param-label">Empty Space Character:</span>
-                                        <span class="param-value inline-editable" data-type="char" data-char-type="empty" data-callback="updateCharacterValue">•</span>
-                                    </div>
+                        <!-- Character Customization -->
+                        <div class="settings-section-compact" style="margin-bottom: 0.5rem;">
+                            <div class="collapsible-title collapsed" id="charactersToggle" style="font-size: 0.7rem; margin-bottom: 0.3rem; color: #7FE9E1; cursor: pointer;">CHARACTERS</div>
+                            <div class="collapsible-content collapsed" id="charactersContent">
+                            
+                            <div class="param-item">
+                                <div class="param-row">
+                                    <span class="param-label">Empty Space Character:</span>
+                                    <span class="param-value inline-editable" data-type="char" data-char-type="empty" data-callback="updateCharacterValue">·</span>
                                 </div>
-                                
-                                <div class="param-item">
-                                    <div class="param-row">
-                                        <span class="param-label">Empty Space Font Size:</span>
-                                        <span class="param-value inline-editable" data-type="number" data-min="0.5" data-max="2.0" data-input-id="emptyCharSize" data-callback="updateNumericValue">1.6</span>x
-                                    </div>
-                                    <input type="range" id="emptyCharSize" min="0.5" max="2.0" step="0.1" value="1.6" style="display: none;">
+                            </div>
+                            
+                            <div class="param-item">
+                                <div class="param-row">
+                                    <span class="param-label">Empty Space Font Size:</span>
+                                    <span class="param-value inline-editable" data-type="number" data-min="0.5" data-max="2.0" data-input-id="emptyCharSize" data-callback="updateNumericValue">1.6</span>x
                                 </div>
-                                
-                                <div class="param-item">
-                                    <div class="param-row">
-                                        <span class="param-label">Cat Character:</span>
-                                        <span class="param-value inline-editable" data-type="char" data-char-type="cat" data-callback="updateCharacterValue">C</span>
-                                    </div>
+                                <input type="range" id="emptyCharSize" min="0.5" max="2.0" step="0.1" value="1.6" style="display: none;">
+                            </div>
+                            
+                            <div class="param-item">
+                                <div class="param-row">
+                                    <span class="param-label">Cat Character:</span>
+                                    <span class="param-value inline-editable" data-type="char" data-char-type="cat" data-callback="updateCharacterValue">C</span>
                                 </div>
-                                
-                                <div class="param-item">
-                                    <div class="param-row">
-                                        <span class="param-label">Mouse Character:</span>
-                                        <span class="param-value inline-editable" data-type="char" data-char-type="mouse" data-callback="updateCharacterValue">M</span>
-                                    </div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <div class="param-row">
+                                    <span class="param-label">Mouse Character:</span>
+                                    <span class="param-value inline-editable" data-type="char" data-char-type="mouse" data-callback="updateCharacterValue">M</span>
                                 </div>
-                                
-                                <div class="param-item">
-                                    <div class="param-row">
-                                        <span class="param-label">Obstacle Character:</span>
-                                        <span class="param-value inline-editable" data-type="char" data-char-type="obstacle" data-callback="updateCharacterValue">O</span>
-                                    </div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <div class="param-row">
+                                    <span class="param-label">Obstacle Character:</span>
+                                    <span class="param-value inline-editable" data-type="char" data-char-type="obstacle" data-callback="updateCharacterValue">O</span>
                                 </div>
-                                
-                                <div class="param-item">
-                                    <div class="param-row">
-                                        <span class="param-label">Cat Vision Character:</span>
-                                        <span class="param-value inline-editable" data-type="char" data-char-type="unknown" data-callback="updateCharacterValue">?</span>
-                                    </div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <div class="param-row">
+                                    <span class="param-label">Cat Vision Character:</span>
+                                    <span class="param-value inline-editable" data-type="char" data-char-type="unknown" data-callback="updateCharacterValue">?</span>
                                 </div>
-                                
-                                <div class="param-item">
-                                    <div class="param-row">
-                                        <span class="param-label">Mouse Vision Character:</span>
-                                        <span class="param-value inline-editable" data-type="char" data-char-type="error" data-callback="updateCharacterValue">!</span>
-                                    </div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <div class="param-row">
+                                    <span class="param-label">Mouse Vision Character:</span>
+                                    <span class="param-value inline-editable" data-type="char" data-char-type="error" data-callback="updateCharacterValue">!</span>
                                 </div>
+                            </div>
+                            
+                            <div style="margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid #4B566A;">
+                                <button class="btn btn-secondary" id="resetTypography">Reset to Defaults</button>
+                            </div>
                             </div>
                         </div>
                     </div>
@@ -1207,7 +1336,7 @@
                 // CRT Controls
                 const crtElements = [
                     'crtScanlines', 'crtGlow', 'crtPixels', 'crtContrast', 
-                    'crtBrightness', 'crtSaturation', 'crtFlicker', 'crtNoise', 'crtWarp'
+                    'crtBrightness', 'crtSaturation', 'crtFlicker', 'crtNoise', 'crtWarp', 'crtBarrel'
                 ];
                 crtElements.forEach(id => {
                     const element = document.getElementById(id);
@@ -1284,13 +1413,12 @@
 
             initializeCollapsibleSections() {
                 const mainSections = [
-                    { toggle: 'settingsToggle', content: 'settingsContent' },
-                    { toggle: 'typographyToggle', content: 'typographyContent' },
-                    { toggle: 'characterToggle', content: 'characterContent' }
+                    { toggle: 'settingsToggle', content: 'settingsContent' }
                 ];
 
                 const accordionSections = [
-                    // Keep empty for now to prevent accordion errors
+                    { toggle: 'typographyToggle', content: 'typographyContent' },
+                    { toggle: 'charactersToggle', content: 'charactersContent' }
                 ];
 
                 // Initialize main sections (normal collapsible behavior)
@@ -1299,7 +1427,9 @@
                     const content = document.getElementById(section.content);
                     
                     if (toggle && content) {
-                        const maxViewportHeight = window.innerHeight * 0.9;
+                        // Use more restrictive height for Settings specifically
+                        const maxViewportHeight = section.content === 'settingsContent' ? 
+                            window.innerHeight * 0.4 : window.innerHeight * 0.9;
                         const contentHeight = Math.min(content.scrollHeight, maxViewportHeight);
                         content.style.maxHeight = content.classList.contains('collapsed') ? '0px' : contentHeight + 'px';
                         
@@ -1309,7 +1439,9 @@
                             if (isCollapsed) {
                                 content.classList.remove('collapsed');
                                 toggle.classList.remove('collapsed');
-                                const maxViewportHeight = window.innerHeight * 0.9;
+                                // Use more restrictive height for Settings specifically
+                                const maxViewportHeight = section.content === 'settingsContent' ? 
+                                    window.innerHeight * 0.4 : window.innerHeight * 0.9;
                                 const contentHeight = Math.min(content.scrollHeight, maxViewportHeight);
                                 content.style.maxHeight = contentHeight + 'px';
                             } else {
@@ -1934,6 +2066,9 @@
                 const warpEl = document.getElementById('crtWarp');
                 const warp = warpEl ? parseFloat(warpEl.value) : 0;
                 
+                const barrelEl = document.getElementById('crtBarrel');
+                const barrel = barrelEl ? parseFloat(barrelEl.value) : 0;
+                
                 // Update displays
                 const scanlinesDisplay = document.getElementById('scanlinesDisplay');
                 if (scanlinesDisplay) scanlinesDisplay.textContent = scanlines.toFixed(1);
@@ -1962,6 +2097,9 @@
                 const warpDisplay = document.getElementById('warpDisplay');
                 if (warpDisplay) warpDisplay.textContent = warp.toFixed(1);
                 
+                const barrelDisplay = document.getElementById('barrelDisplay');
+                if (barrelDisplay) barrelDisplay.textContent = barrel.toFixed(1);
+                
                 const overlay = document.querySelector('.crt-overlay');
                 const container = document.querySelector('.container');
                 const crtScreen = document.querySelector('.crt-screen');
@@ -1988,35 +2126,40 @@
                         saturate(${saturation})
                     `;
                     
-                    // Apply screen warp effect (CRT barrel distortion)
+                    // Apply pronounced fisheye lens effect
                     if (warp > 0) {
-                        const warpIntensity = warp * 0.02; // Reduced intensity for more realistic effect
+                        const fisheyeIntensity = warp * 0.08; // More pronounced intensity for dramatic fisheye effect
                         
-                        // Create barrel distortion using CSS clip-path and transform
-                        container.style.transform = `perspective(1000px) rotateX(${warpIntensity * 2}deg)`;
-                        container.style.borderRadius = `${warpIntensity * 30}px`;
+                        // Create pronounced fisheye distortion using CSS transform and perspective
+                        const perspectiveValue = 500 - (warp * 80); // Stronger perspective as warp increases
+                        const scaleValue = 1 + (warp * 0.15); // Scale content to maintain visibility
+                        const borderRadius = warp * 25; // Round the screen for fisheye look
                         
-                        // Apply barrel distortion effect using CSS filter
-                        const barrelEffect = `
+                        container.style.transform = `
+                            perspective(${perspectiveValue}px) 
+                            rotateX(${fisheyeIntensity * 8}deg) 
+                            rotateY(${fisheyeIntensity * 2}deg) 
+                            scale(${scaleValue})
+                        `;
+                        container.style.borderRadius = `${borderRadius}px`;
+                        
+                        // Apply complex radial distortion filter
+                        const fisheyeFilter = `
                             contrast(${contrast}) 
                             brightness(${brightness}) 
                             saturate(${saturation})
                         `;
                         
-                        crtScreen.style.filter = barrelEffect;
+                        crtScreen.style.filter = fisheyeFilter;
                         
-                        // Create the classic CRT curvature effect
-                        const curveAmount = warpIntensity * 15;
+                        // Create pronounced fisheye curvature using clip-path
+                        const curveAmount = fisheyeIntensity * 25;
+                        const innerCurve = fisheyeIntensity * 15;
                         container.style.clipPath = `
-                            polygon(
-                                ${curveAmount}% ${curveAmount}%, 
-                                ${100 - curveAmount}% ${curveAmount}%, 
-                                ${100 - curveAmount * 0.7}% ${100 - curveAmount * 0.7}%, 
-                                ${curveAmount * 0.7}% ${100 - curveAmount * 0.7}%
-                            )
+                            ellipse(${50 + curveAmount}% ${50 + curveAmount}% at 50% 50%)
                         `;
                         
-                        // Add subtle corner darkening (vignette effect)
+                        // Add strong fisheye vignette effect with center brightness
                         const vignetteOverlay = document.getElementById('crt-vignette') || document.createElement('div');
                         if (!document.getElementById('crt-vignette')) {
                             vignetteOverlay.id = 'crt-vignette';
@@ -2032,12 +2175,15 @@
                             container.appendChild(vignetteOverlay);
                         }
                         
+                        // Strong fisheye vignette with center glow
                         vignetteOverlay.style.background = `
                             radial-gradient(ellipse at center, 
-                                transparent 0%, 
-                                transparent ${60 - warpIntensity * 15}%, 
-                                rgba(0,0,0,${warpIntensity * 0.3}) 85%, 
-                                rgba(0,0,0,${warpIntensity * 0.6}) 100%
+                                rgba(255,255,255,${fisheyeIntensity * 0.1}) 0%, 
+                                transparent ${20 + fisheyeIntensity * 5}%, 
+                                transparent ${40 - fisheyeIntensity * 8}%, 
+                                rgba(0,0,0,${fisheyeIntensity * 0.4}) 70%, 
+                                rgba(0,0,0,${fisheyeIntensity * 0.8}) 90%,
+                                rgba(0,0,0,${fisheyeIntensity * 1.2}) 100%
                             )
                         `;
                         
@@ -2107,6 +2253,84 @@
                         this.noiseInterval = null;
                     }
                 }
+                
+                // Apply barrel distortion effect
+                this.updateBarrelDistortion(barrel, enabled);
+            }
+            
+            updateBarrelDistortion(intensity, crtEnabled) {
+                const body = document.body;
+                const container = document.querySelector('.container');
+                const barrelOverlay = document.getElementById('crtBarrelDistortion');
+                const lensOverlay = document.getElementById('crtLensEffect');
+                
+                if (!crtEnabled || intensity === 0) {
+                    // Remove barrel distortion
+                    body.classList.remove('crt-distortion-enabled');
+                    container.classList.remove('crt-warp-enhanced', 'crt-screen-curve');
+                    barrelOverlay.style.display = 'none';
+                    lensOverlay.style.display = 'none';
+                    return;
+                }
+                
+                // Apply barrel distortion
+                body.classList.add('crt-distortion-enabled');
+                barrelOverlay.style.display = 'block';
+                lensOverlay.style.display = 'block';
+                
+                // Scale effect intensity (0-10 → 0-1)
+                const normalizedIntensity = intensity / 10;
+                
+                // Enhanced warp for higher intensities
+                if (intensity > 3) {
+                    container.classList.add('crt-warp-enhanced');
+                }
+                
+                // Screen curve for very high intensities
+                if (intensity > 6) {
+                    container.classList.add('crt-screen-curve');
+                }
+                
+                // Dynamic transform based on intensity
+                const perspectiveVal = 800 + (normalizedIntensity * 400);
+                const rotateX = normalizedIntensity * 2;
+                const rotateY = normalizedIntensity * 0.8;
+                const scaleX = 1 + (normalizedIntensity * 0.03);
+                const scaleY = 1 + (normalizedIntensity * 0.025);
+                
+                container.style.transform = `
+                    perspective(${perspectiveVal}px) 
+                    rotateX(${rotateX}deg) 
+                    rotateY(${rotateY}deg)
+                    scale3d(${scaleX}, ${scaleY}, 1)
+                `;
+                
+                // Update vignette intensity
+                const vignetteStart = 65 - (normalizedIntensity * 15);
+                const vignetteEnd = Math.min(25, normalizedIntensity * 30);
+                
+                barrelOverlay.style.background = `
+                    radial-gradient(ellipse 120% 100% at center, 
+                        transparent 0%, 
+                        transparent ${vignetteStart}%, 
+                        rgba(0,0,0,${normalizedIntensity * 0.08}) 75%, 
+                        rgba(0,0,0,${normalizedIntensity * 0.15}) 85%, 
+                        rgba(0,0,0,${normalizedIntensity * 0.25}) 92%, 
+                        rgba(0,0,0,${vignetteEnd / 100}) 100%
+                    )
+                `;
+                
+                // Update lens effect intensity
+                lensOverlay.style.background = `
+                    radial-gradient(ellipse 80% 60% at center, 
+                        transparent 0%, 
+                        transparent 50%, 
+                        rgba(255,255,255,${normalizedIntensity * 0.02}) 70%, 
+                        rgba(255,255,255,${normalizedIntensity * 0.04}) 85%, 
+                        rgba(0,0,0,${normalizedIntensity * 0.06}) 95%, 
+                        rgba(0,0,0,${normalizedIntensity * 0.12}) 100%
+                    )
+                `;
             }
 
             updateTextPressureSettings() {
