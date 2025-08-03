@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:reactbits.dev)",
+      "Bash(ls:*)",
+      "Bash(npm init:*)",
+      "Bash(npx jsrepo:*)",
+      "Bash(npm install:*)",
+      "Bash(jsrepo init:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": []
+  }
+}

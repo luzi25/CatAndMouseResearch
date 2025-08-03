@@ -1,0 +1,2949 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumon Research</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Scriptorama+Tradeshow+JF&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Space Mono', 'Lucida Console', monospace;
+            background: #101827;
+            color: #7FE9E1;
+            min-height: 100vh;
+            overflow-x: hidden;
+            text-transform: uppercase;
+            position: relative;
+            cursor: default;
+        }
+        
+        /* Mouse cursor rules */
+        button, input[type="number"], input[type="text"], input[type="file"], .btn, .file-input-custom {
+            cursor: pointer !important;
+        }
+        
+        input[type="range"], input[type="checkbox"], .collapsible-title {
+            cursor: pointer !important;
+        }
+
+        .crt-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        .crt-overlay::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 1px,
+                rgba(127, 233, 225, 0.08) 1px,
+                rgba(127, 233, 225, 0.08) 2px,
+                transparent 2px,
+                transparent 4px
+            );
+            opacity: var(--crt-scanlines, 0.8);
+            animation: crt-scanlines 0.1s linear infinite;
+        }
+
+        .crt-overlay::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent 1px,
+                    rgba(127, 233, 225, 0.02) 1px,
+                    rgba(127, 233, 225, 0.02) 2px
+                ),
+                radial-gradient(
+                    ellipse 120% 100% at center,
+                    transparent 65%,
+                    rgba(0, 0, 0, 0.4) 100%
+                );
+            opacity: var(--crt-pixels, 0.3);
+        }
+
+        @keyframes crt-scanlines {
+            0% { transform: translateY(0px); }
+            100% { transform: translateY(4px); }
+        }
+
+        @keyframes crt-flicker {
+            0% { opacity: 1; }
+            50% { opacity: 0.98; }
+            100% { opacity: 1; }
+        }
+
+
+
+        .crt-screen {
+            filter: 
+                contrast(1.1) 
+                brightness(1.05) 
+                saturate(1.2);
+        }
+
+        .crt-screen::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .crt-screen::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .crt-screen * {
+            text-shadow: 
+                0 0 1px rgba(127, 233, 225, calc(var(--crt-glow, 0.3) * 0.4)),
+                0 0 2px rgba(127, 233, 225, calc(var(--crt-glow, 0.3) * 0.2)),
+                0 0 3px rgba(127, 233, 225, calc(var(--crt-glow, 0.3) * 0.1));
+        }
+
+        .crt-screen .grid {
+            text-shadow: 
+                0 0 1px rgba(127, 233, 225, calc(var(--crt-glow, 0.3) * 0.6)),
+                0 0 2px rgba(127, 233, 225, calc(var(--crt-glow, 0.3) * 0.3)),
+                0 0 3px rgba(127, 233, 225, calc(var(--crt-glow, 0.3) * 0.2));
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+            background: #101827;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: transparent;
+            padding: 1rem 2rem;
+            z-index: 1000;
+        }
+
+        .header h1 {
+            font-family: 'Scriptorama Tradeshow JF', 'Space Mono', 'Lucida Console', monospace;
+            font-size: 4rem;
+            font-weight: 600;
+            color: #7FE9E1;
+            text-align: center;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+        }
+
+        .main-content {
+            display: flex;
+            width: 100%;
+            margin-top: 80px;
+            min-height: calc(100vh - 80px);
+        }
+
+        .control-center {
+            width: 15%;
+            background: #101827;
+            padding: 1rem;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .draggable-panel {
+            cursor: move;
+            user-select: none;
+            position: relative;
+        }
+
+        .draggable-panel:hover {
+            opacity: 0.9;
+        }
+
+        .draggable-panel.dragging {
+            z-index: 1000;
+            position: fixed;
+            background: #101827;
+            border: 1px solid #7FE9E1;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(127, 233, 225, 0.3);
+        }
+
+        .simulation-view {
+            width: 70%;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            justify-content: stretch;
+            background: #101827;
+            min-height: calc(100vh - 80px);
+            position: relative;
+        }
+
+        .analytics-panel {
+            width: 15%;
+            background: #101827;
+            padding: 1rem;
+            overflow-y: auto;
+        }
+
+        .section-title {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #7FE9E1;
+            margin-bottom: 0.7rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #4B566A;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .collapsible-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #7FE9E1;
+            margin-bottom: 0.5rem;
+            padding: 0.5rem;
+            border: 1px solid #4B566A;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            background: #101827;
+            transition: all 0.2s;
+            user-select: none;
+            position: relative;
+        }
+
+        .collapsible-title:hover {
+            background: #4B566A;
+            box-shadow: 0 0 5px rgba(127, 233, 225, 0.3);
+        }
+
+        .collapsible-title::after {
+            content: '▼';
+            position: absolute;
+            right: 0.5rem;
+            transition: transform 0.2s;
+        }
+
+        .collapsible-title.collapsed::after {
+            transform: rotate(-90deg);
+        }
+
+        .collapsible-content {
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .collapsible-content.collapsed {
+            max-height: 0;
+        }
+
+        .collapsible-content:not(.collapsed) {
+            max-height: 90vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .legend .scramble-char {
+            display: inline-block;
+            min-width: 1ch;
+            text-align: center;
+            font-family: 'Consolas', 'Courier New', monospace;
+        }
+
+        .inline-editable {
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 2px;
+            transition: background-color 0.2s;
+        }
+
+        .inline-editable:hover {
+            background: rgba(127, 233, 225, 0.1);
+        }
+
+        .inline-editable.editing {
+            background: rgba(127, 233, 225, 0.2) !important;
+            outline: 1px solid #7FE9E1 !important;
+        }
+
+        .param-group {
+            margin-bottom: 0.7rem;
+        }
+
+        .param-item {
+            margin-bottom: 0.3rem;
+        }
+
+        .param-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.3rem;
+            font-size: 0.85rem;
+        }
+
+        .param-label {
+            color: #4B566A;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+
+        .param-value {
+            font-weight: 600;
+            color: #7FE9E1;
+        }
+
+        .param-item label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #7FE9E1;
+            margin-bottom: 0.2rem;
+            text-transform: uppercase;
+        }
+
+        .param-item input[type="number"],
+        .param-item input[type="range"] {
+            width: 100%;
+            padding: 0.3rem;
+            border: 1px solid #4B566A;
+            border-radius: 2px;
+            font-size: 0.7rem;
+            background: #101827;
+            color: #7FE9E1;
+        }
+
+        .param-item input[type="number"]:focus,
+        .param-item input[type="range"]:focus {
+            outline: none;
+            border-color: #7FE9E1;
+            box-shadow: 0 0 5px rgba(127, 233, 225, 0.3);
+        }
+
+        .param-item input[type="number"]:disabled,
+        .param-item input[type="range"]:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Remove number input arrows */
+        .param-row input[type="number"]::-webkit-outer-spin-button,
+        .param-row input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .param-row input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        .param-row input[type="number"]:focus {
+            outline: 1px solid #7FE9E1;
+            background: rgba(127, 233, 225, 0.1);
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.3rem;
+        }
+
+        .checkbox-item input[type="checkbox"],
+        .param-row input[type="checkbox"] {
+            margin-right: 0.5rem;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #7FE9E1;
+            border-radius: 2px;
+            background: transparent;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .checkbox-item input[type="checkbox"]:checked,
+        .param-row input[type="checkbox"]:checked {
+            background: #7FE9E1;
+            border-color: #7FE9E1;
+        }
+
+        .checkbox-item input[type="checkbox"]:checked::after,
+        .param-row input[type="checkbox"]:checked::after {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: 2px;
+            color: #101827;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .checkbox-item input[type="checkbox"]:hover,
+        .param-row input[type="checkbox"]:hover {
+            border-color: #7FE9E1;
+            box-shadow: 0 0 8px rgba(127, 233, 225, 0.4);
+            transform: scale(1.05);
+        }
+
+        /* Custom Slider Styles */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 4px;
+            background: #4B566A;
+            border-radius: 2px;
+            outline: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        input[type="range"]:hover {
+            background: #5A6478;
+            box-shadow: 0 0 10px rgba(127, 233, 225, 0.2);
+        }
+
+        /* Webkit Slider Thumb - Hidden */
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 0;
+            height: 0;
+            background: transparent;
+            cursor: pointer;
+        }
+
+        /* Firefox Slider Thumb - Hidden */
+        input[type="range"]::-moz-range-thumb {
+            width: 0;
+            height: 0;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+        }
+
+        /* Firefox Slider Track */
+        input[type="range"]::-moz-range-track {
+            height: 4px;
+            background: #4B566A;
+            border-radius: 2px;
+            border: none;
+        }
+
+        /* Active slider track fill */
+        input[type="range"]::-webkit-slider-runnable-track {
+            height: 4px;
+            background: linear-gradient(to right, #7FE9E1 0%, #7FE9E1 var(--range-progress, 0%), #4B566A var(--range-progress, 0%), #4B566A 100%);
+            border-radius: 2px;
+        }
+
+        .checkbox-item label {
+            font-size: 0.9rem;
+            color: #7FE9E1;
+            margin: 0;
+            text-transform: uppercase;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 0.5rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 0.2rem;
+        }
+
+        /* Prevent animations on page load */
+        .no-animations * {
+            transition: none !important;
+            animation: none !important;
+        }
+
+        .btn-primary {
+            background: #4B566A;
+            color: #7FE9E1;
+            border: 1px solid #7FE9E1;
+            text-transform: uppercase;
+        }
+
+        .btn-primary:hover {
+            background: #7FE9E1;
+            color: #101827;
+            box-shadow: 0 0 10px rgba(127, 233, 225, 0.5);
+        }
+
+        .btn-secondary {
+            background: #101827;
+            color: #7FE9E1;
+            border: 1px solid #4B566A;
+            text-transform: uppercase;
+        }
+
+        .btn-secondary:hover {
+            background: #4B566A;
+            border-color: #7FE9E1;
+        }
+
+        .btn-danger {
+            background: #101827;
+            color: #7FE9E1;
+            border: 1px solid #7FE9E1;
+            text-transform: uppercase;
+        }
+
+        .btn-danger:hover {
+            background: #7FE9E1;
+            color: #101827;
+        }
+
+        .grid-container {
+            background: #101827;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .grid {
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 1.6rem;
+            line-height: 1.3rem;
+            letter-spacing: 0.4rem;
+            color: #7FE9E1;
+            white-space: pre;
+            background: #101827;
+            padding: 0;
+            margin: 0;
+            border: none;
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 4.1rem;
+            font-weight: normal;
+        }
+
+        .footer-container {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+        }
+
+        .legend {
+            font-size: 1rem;
+            color: #7FE9E1;
+            text-align: center;
+            padding: 0.5rem;
+            background: #101827;
+            text-transform: uppercase;
+            white-space: nowrap;
+            overflow: hidden;
+            min-width: max-content;
+            letter-spacing: normal;
+            word-spacing: normal;
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 500px;
+            display: none;
+            position: relative;
+        }
+        
+        .chart-close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 30px;
+            height: 30px;
+            background: #101827;
+            border: 2px solid #7FE9E1;
+            color: #7FE9E1;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+        
+        .chart-close-btn:hover {
+            background: #7FE9E1;
+            color: #101827;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.3rem;
+            font-size: 0.85rem;
+        }
+
+        .stat-label {
+            color: #4B566A;
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            font-weight: 600;
+            color: #7FE9E1;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-input-custom {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #4B566A;
+            border-radius: 2px;
+            font-size: 0.7rem;
+            margin-bottom: 0.2rem;
+            background: #101827;
+            color: #7FE9E1;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            user-select: none;
+        }
+
+        .file-input-custom:hover {
+            border-color: #7FE9E1;
+            background: rgba(127, 233, 225, 0.1);
+            box-shadow: 0 0 5px rgba(127, 233, 225, 0.3);
+        }
+
+        .file-input-custom.has-file {
+            color: #7FE9E1;
+            background: rgba(127, 233, 225, 0.05);
+        }
+
+        .speed-display {
+            text-align: center;
+            font-size: 0.8rem;
+            color: #4B566A;
+            margin-top: 0.2rem;
+            text-transform: uppercase;
+        }
+
+        .cat { color: #7FE9E1; }
+        .mouse { color: #7FE9E1; }
+        .obstacle { color: #7FE9E1; }
+        .cat-vision { color: #7FE9E1; }
+        .mouse-vision { color: #7FE9E1; }
+    </style>
+</head>
+<body>
+    <div class="crt-overlay"></div>
+    
+    <header class="header">
+        <h1>LUMON RESEARCH</h1>
+    </header>
+
+    <div class="container crt-screen">
+        <div class="main-content">
+            <!-- Left Column: Control Center -->
+            <div class="control-center draggable-panel" id="controlPanel">
+                <h3 class="section-title">Control Center</h3>
+                
+                <div class="param-group">
+                    <h4 style="font-size: 1.1rem; margin-bottom: 0.3rem; color: #7FE9E1; text-transform: uppercase;">Simulation Parameters</h4>
+                    
+                    <div class="param-row">
+                        <span class="param-label">Episode Count:</span>
+                        <span class="param-value inline-editable" data-type="number" data-min="1" data-max="10000" data-input-id="episodeCount" data-callback="updateNumericValue">1000</span>
+                    </div>
+                    <input type="number" id="episodeCount" value="1000" min="1" max="10000" style="display: none;">
+                    
+                    <div class="param-row">
+                        <span class="param-label">Step Count:</span>
+                        <span class="param-value inline-editable" data-type="number" data-min="10" data-max="1000" data-input-id="stepCount" data-callback="updateNumericValue">200</span>
+                    </div>
+                    <input type="number" id="stepCount" value="200" min="10" max="1000" style="display: none;">
+                    
+                    <div class="param-row">
+                        <span class="param-label">Cat Vision:</span>
+                        <span class="param-value inline-editable" data-type="number" data-min="1" data-max="15" data-input-id="predatorVision" data-callback="updateNumericValue">5</span>
+                    </div>
+                    <input type="number" id="predatorVision" value="5" min="1" max="15" style="display: none;">
+                    
+                    <div class="param-row">
+                        <span class="param-label">Mouse Vision:</span>
+                        <span class="param-value inline-editable" data-type="number" data-min="1" data-max="15" data-input-id="preyVision" data-callback="updateNumericValue">7</span>
+                    </div>
+                    <input type="number" id="preyVision" value="7" min="1" max="15" style="display: none;">
+                    
+                    <div class="param-row">
+                        <span class="param-label">Obstacle Count:</span>
+                        <span class="param-value inline-editable" data-type="number" data-min="0" data-max="50" data-input-id="obstacleCount" data-callback="updateNumericValue">10</span>
+                    </div>
+                    <input type="number" id="obstacleCount" value="10" min="0" max="50" style="display: none;">
+                </div>
+
+                <div class="param-group">
+                    <h4 style="font-size: 1.1rem; margin-bottom: 0.3rem; color: #7FE9E1; text-transform: uppercase;">Display Controls</h4>
+                    
+                    <div class="param-row">
+                        <span class="param-label">Toggle Render:</span>
+                        <input type="checkbox" id="toggleRender" checked style="margin: 0;">
+                    </div>
+                    
+                    <div class="param-row">
+                        <span class="param-label">Toggle Vision:</span>
+                        <input type="checkbox" id="toggleVision" checked style="margin: 0;">
+                    </div>
+                    
+                    <div class="param-row">
+                        <span class="param-label">Simulation Speed:</span>
+                        <span class="param-value inline-editable" data-type="number" data-min="1" data-max="500" data-input-id="simulationSpeed" data-callback="updateNumericValue">100</span>
+                    </div>
+                    <input type="range" id="simulationSpeed" min="1" max="500" value="100" style="display: none;">
+                </div>
+
+
+                <div class="param-group">
+                    <h4 style="font-size: 1.1rem; margin-bottom: 0.3rem; color: #7FE9E1; text-transform: uppercase;">Actions</h4>
+                    
+                    <button class="btn btn-primary" id="startTraining">Start Training</button>
+                    <button class="btn btn-danger" id="stopTraining">Stop Training</button>
+                    <button class="btn btn-secondary" id="continueTraining">Continue Training</button>
+                </div>
+
+                <div class="param-group">
+                    <h4 style="font-size: 1.1rem; margin-bottom: 0.3rem; color: #7FE9E1; text-transform: uppercase;">Persistence</h4>
+                    
+                    <button class="btn btn-secondary" id="downloadTraining">Download Training</button>
+                    <input type="file" id="uploadTraining" class="file-input" accept=".json">
+                    <div class="file-input-custom" id="uploadTrainingCustom">Choose Training File</div>
+                    <button class="btn btn-secondary" id="loadTraining">Upload Training</button>
+                </div>
+            </div>
+
+            <!-- Middle Column: Simulation View -->
+            <div class="simulation-view">
+                <div id="gridView" style="width: 100%; height: 100%; display: flex; flex-direction: column;">
+                    <div class="grid-container">
+                        <pre class="grid" id="gameGrid"></pre>
+                    </div>
+                </div>
+                
+                <!-- Separate Footer/Legend -->
+                <div class="footer-container">
+                    <div class="legend" id="gridLegend">
+                        <span class="cat">C: CAT</span> | 
+                        <span class="mouse">M: MOUSE</span> | 
+                        <span class="obstacle">O: OBSTACLE</span> | 
+                        <span class="cat-vision">?: CAT VISION</span> | 
+                        <span class="mouse-vision">!: MOUSE VISION</span>
+                    </div>
+                </div>
+                
+                <div class="chart-container" id="chartContainer">
+                    <button class="chart-close-btn" id="chartCloseBtn">×</button>
+                    <canvas id="performanceChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Right Column: Analytics Panel -->
+            <div class="analytics-panel draggable-panel" id="analyticsPanel">
+                <h3 class="section-title">Analytics Panel</h3>
+                
+                <div class="stat-row">
+                    <span class="stat-label">Episode:</span>
+                    <span class="stat-value" id="currentEpisode">0</span>
+                </div>
+                
+                <div class="stat-row">
+                    <span class="stat-label">Step:</span>
+                    <span class="stat-value" id="currentStep">0</span>
+                </div>
+                
+                <div class="stat-row">
+                    <span class="stat-label">Cat Wins:</span>
+                    <span class="stat-value" id="catWins">0</span>
+                </div>
+                
+                <div class="stat-row">
+                    <span class="stat-label">Mouse Wins:</span>
+                    <span class="stat-value" id="mouseWins">0</span>
+                </div>
+
+                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #4B566A;">
+                    <div class="stat-row">
+                        <span class="stat-label">Cat Win Rate:</span>
+                        <span class="stat-value" id="catWinRate">0%</span>
+                    </div>
+                    
+                    <div class="stat-row">
+                        <span class="stat-label">Mouse Win Rate:</span>
+                        <span class="stat-value" id="mouseWinRate">0%</span>
+                    </div>
+                    
+                    <div class="stat-row">
+                        <span class="stat-label">Avg Steps:</span>
+                        <span class="stat-value" id="avgSteps">0</span>
+                    </div>
+                    
+                    <div class="stat-row">
+                        <span class="stat-label">Training Status:</span>
+                        <span class="stat-value" id="trainingStatus">Ready</span>
+                    </div>
+                    
+                    <div class="stat-row">
+                        <span class="stat-label">Cat Score:</span>
+                        <span class="stat-value" id="currentCatScore">0</span>
+                    </div>
+                    
+                    <div class="stat-row">
+                        <span class="stat-label">Mouse Score:</span>
+                        <span class="stat-value" id="currentMouseScore">0</span>
+                    </div>
+                    
+                    <div class="stat-row">
+                        <span class="stat-label">Obstacles:</span>
+                        <span class="stat-value" id="obstacleCountDisplay">0</span>
+                    </div>
+                </div>
+                
+                <!-- Settings -->
+                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #4B566A;">
+                    <div class="collapsible-title collapsed" id="settingsToggle">Settings</div>
+                    <div class="collapsible-content collapsed" id="settingsContent">
+                        
+                        <!-- Grid Font Controls -->
+                        <div style="margin-bottom: 1rem;">
+                            <h4 style="font-size: 0.8rem; margin-bottom: 0.5rem; color: #7FE9E1;">GRID FONT</h4>
+                            <div class="param-item">
+                                <div class="param-row">
+                                    <span class="param-label">Font Size:</span>
+                                    <span class="param-value inline-editable" data-type="number" data-min="0.5" data-max="3" data-input-id="fontSize" data-callback="updateNumericValue">1.6</span>rem
+                                </div>
+                                <input type="range" id="fontSize" min="0.5" max="3" step="0.1" value="1.6" style="display: none;">
+                            </div>
+                            
+                            <div class="param-item">
+                                <div class="param-row">
+                                    <span class="param-label">Horizontal Spacing:</span>
+                                    <span class="param-value inline-editable" data-type="number" data-min="-0.5" data-max="1" data-input-id="horizontalSpacing" data-callback="updateNumericValue">0.4</span>rem
+                                </div>
+                                <input type="range" id="horizontalSpacing" min="-0.5" max="1" step="0.1" value="0.4" style="display: none;">
+                            </div>
+                            
+                            <div class="param-item">
+                                <div class="param-row">
+                                    <span class="param-label">Vertical Spacing:</span>
+                                    <span class="param-value inline-editable" data-type="number" data-min="0.5" data-max="2" data-input-id="verticalSpacing" data-callback="updateNumericValue">1.3</span>rem
+                                </div>
+                                <input type="range" id="verticalSpacing" min="0.5" max="2" step="0.1" value="1.3" style="display: none;">
+                            </div>
+                        </div>
+
+                        <!-- CRT Effects -->
+                        <div style="margin-bottom: 1rem;">
+                            <h4 style="font-size: 0.8rem; margin-bottom: 0.5rem; color: #7FE9E1;">CRT EFFECTS</h4>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="crtEnabled" checked>
+                                <label for="crtEnabled">Enable</label>
+                            </div>
+                            
+                            <div class="param-item">
+                                <label for="crtGlow">Phosphor Glow</label>
+                                <input type="range" id="crtGlow" min="0" max="3" step="0.1" value="0.7">
+                                <div class="speed-display" id="glowDisplay">0.7</div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <label for="crtScanlines">Scanlines</label>
+                                <input type="range" id="crtScanlines" min="0" max="1" step="0.1" value="0.9">
+                                <div class="speed-display" id="scanlinesDisplay">0.9</div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <label for="crtWarp">Screen Warp</label>
+                                <input type="range" id="crtWarp" min="0" max="5" step="0.1" value="0">
+                                <div class="speed-display" id="warpDisplay">0</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Text Pressure -->
+                        <div style="margin-bottom: 1rem;">
+                            <h4 style="font-size: 0.8rem; margin-bottom: 0.5rem; color: #7FE9E1;">TEXT PRESSURE</h4>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="textPressureEnabled" checked>
+                                <label for="textPressureEnabled">Enable</label>
+                            </div>
+                            
+                            <div class="param-item">
+                                <label for="textPressureRange">Effect Range</label>
+                                <input type="range" id="textPressureRange" min="50" max="500" value="111">
+                                <div class="speed-display" id="rangeDisplay">111px</div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <label for="textPressureSmoothing">Smoothing</label>
+                                <input type="range" id="textPressureSmoothing" min="5" max="30" value="30">
+                                <div class="speed-display" id="smoothingDisplay">30</div>
+                            </div>
+                        </div>
+                            
+                            <div class="param-item">
+                                <label for="textPressureMinWeight">Min Font Weight</label>
+                                <input type="range" id="textPressureMinWeight" min="1" max="1500" step="1" value="1">
+                                <div class="speed-display" id="minWeightDisplay">1</div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <label for="textPressureMaxWeight">Max Font Weight</label>
+                                <input type="range" id="textPressureMaxWeight" min="1" max="1500" step="1" value="1500">
+                                <div class="speed-display" id="maxWeightDisplay">1500</div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <label for="textPressureMinOpacity">Min Opacity</label>
+                                <input type="range" id="textPressureMinOpacity" min="0" max="1" step="0.1" value="0.8">
+                                <div class="speed-display" id="minOpacityDisplay">0.8</div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <label for="textPressureMaxOpacity">Max Opacity</label>
+                                <input type="range" id="textPressureMaxOpacity" min="0.5" max="1" step="0.1" value="1">
+                                <div class="speed-display" id="maxOpacityDisplay">1</div>
+                            </div>
+                            
+                            <div style="margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid #4B566A;">
+                                <h4 style="font-size: 1.1rem; margin-bottom: 0.3rem; color: #7FE9E1; text-transform: uppercase;">Text Effects</h4>
+                                
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="textPressureBold" checked>
+                                    <label for="textPressureBold">Bold Weight Effect</label>
+                                </div>
+                                
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="textPressureItalic">
+                                    <label for="textPressureItalic">Italic Effect</label>
+                                </div>
+                                
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="textPressureStrike">
+                                    <label for="textPressureStrike">Strikethrough Effect</label>
+                                </div>
+                                
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="textPressureUnderline">
+                                    <label for="textPressureUnderline">Underline Effect</label>
+                                </div>
+                                
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="textPressureScale" checked>
+                                    <label for="textPressureScale">Scale Effect</label>
+                                </div>
+                            </div>
+                            
+                            <div style="margin-top: 0.5rem;">
+                                <div class="param-item">
+                                    <label for="textPressureScaleMin">Min Scale</label>
+                                    <input type="range" id="textPressureScaleMin" min="0.5" max="1" step="0.1" value="0.7">
+                                    <div class="speed-display" id="scaleMinDisplay">0.7</div>
+                                </div>
+                                
+                                <div class="param-item">
+                                    <label for="textPressureScaleMax">Max Scale</label>
+                                    <input type="range" id="textPressureScaleMax" min="1" max="3" step="0.1" value="1.3">
+                                    <div class="speed-display" id="scaleMaxDisplay">1.3</div>
+                                </div>
+                            </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Typography Controls -->
+                        <div class="param-group">
+                            <div class="collapsible-title collapsed" id="typographyToggle">Typography Controls</div>
+                            <div class="collapsible-content collapsed" id="typographyContent">
+                                
+                                <div class="param-item">
+                                    <label for="showValueDisplays">Show Value Displays</label>
+                                    <input type="checkbox" id="showValueDisplays" class="custom-checkbox">
+                                </div>
+                                
+                                <div class="param-item">
+                                    <label for="gridCharSize">Grid Character Size</label>
+                                    <input type="range" id="gridCharSize" min="0.5" max="3" step="0.1" value="1.6">
+                                    <div class="speed-display" id="gridCharDisplay">1.6rem</div>
+                                </div>
+                                
+                                <div class="param-item">
+                                    <label for="headerTitleSize">Main Header</label>
+                                    <input type="range" id="headerTitleSize" min="2" max="6" step="0.1" value="5.7">
+                                    <div class="speed-display" id="headerTitleDisplay">5.7rem</div>
+                                </div>
+                                
+                                <div class="param-item">
+                                    <label for="sectionTitleSize">Section Titles</label>
+                                    <input type="range" id="sectionTitleSize" min="1" max="3" step="0.1" value="1.4">
+                                    <div class="speed-display" id="sectionTitleDisplay">1.4rem</div>
+                                </div>
+                                
+                                <div class="param-item">
+                                    <label for="collapsibleTitleSize">Collapsible Titles</label>
+                                    <input type="range" id="collapsibleTitleSize" min="0.8" max="2" step="0.1" value="0.9">
+                                    <div class="speed-display" id="collapsibleTitleDisplay">0.9rem</div>
+                                </div>
+                                
+                                <div class="param-item">
+                                    <label for="subsectionSize">Subsection Headers</label>
+                                    <input type="range" id="subsectionSize" min="0.6" max="1.5" step="0.1" value="1">
+                                    <div class="speed-display" id="subsectionDisplay">1rem</div>
+                                </div>
+                                
+                                <div class="param-item">
+                                    <label for="paramLabelSize">Parameter Labels</label>
+                                    <input type="range" id="paramLabelSize" min="0.5" max="1.2" step="0.1" value="0.7">
+                                    <div class="speed-display" id="paramLabelDisplay">0.7rem</div>
+                                </div>
+                                
+                                <div class="param-item">
+                                    <label for="paramRowSize">Parameter Rows</label>
+                                    <input type="range" id="paramRowSize" min="0.5" max="1.2" step="0.1" value="0.8">
+                                    <div class="speed-display" id="paramRowDisplay">0.8rem</div>
+                                </div>
+                                
+                                <div class="param-item">
+                                    <label for="buttonSize">Buttons</label>
+                                    <input type="range" id="buttonSize" min="0.5" max="1.2" step="0.1" value="0.7">
+                                    <div class="speed-display" id="buttonDisplay">0.7rem</div>
+                                </div>
+                                
+                                <div class="param-item">
+                                    <label for="statsSize">Stats/Analytics</label>
+                                    <input type="range" id="statsSize" min="0.5" max="1.2" step="0.1" value="0.8">
+                                    <div class="speed-display" id="statsDisplay">0.8rem</div>
+                                </div>
+                                
+                                <div class="param-item">
+                                    <label for="speedDisplaySize">Value Displays</label>
+                                    <input type="range" id="speedDisplaySize" min="0.4" max="1" step="0.1" value="0.8">
+                                    <div class="speed-display" id="speedDisplayDisplay">0.8rem</div>
+                                </div>
+                                
+                                <div class="param-item">
+                                    <label for="legendSize">Game Legend/Footer</label>
+                                    <input type="range" id="legendSize" min="0.6" max="1.5" step="0.1" value="0.9">
+                                    <div class="speed-display" id="legendDisplay">0.9rem</div>
+                                </div>
+                                
+                                <div class="param-item">
+                                    <label for="numberInputSize">Number Inputs</label>
+                                    <input type="range" id="numberInputSize" min="0.4" max="1" step="0.1" value="0.8">
+                                    <div class="speed-display" id="numberInputDisplay">0.8rem</div>
+                                </div>
+                                
+                                <div style="margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid #4B566A;">
+                                    <button class="btn btn-secondary" id="resetTypography">Reset to Defaults</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Character Customization Settings -->
+                        <div class="param-group">
+                            <div class="collapsible-title collapsed" id="characterToggle">Character Customization</div>
+                            <div class="collapsible-content collapsed" id="characterContent">
+                                
+                                <div class="param-item">
+                                    <div class="param-row">
+                                        <span class="param-label">Empty Space Character:</span>
+                                        <span class="param-value inline-editable" data-type="char" data-char-type="empty" data-callback="updateCharacterValue">•</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="param-item">
+                                    <div class="param-row">
+                                        <span class="param-label">Empty Space Font Size:</span>
+                                        <span class="param-value inline-editable" data-type="number" data-min="0.5" data-max="2.0" data-input-id="emptyCharSize" data-callback="updateNumericValue">1.6</span>x
+                                    </div>
+                                    <input type="range" id="emptyCharSize" min="0.5" max="2.0" step="0.1" value="1.6" style="display: none;">
+                                </div>
+                                
+                                <div class="param-item">
+                                    <div class="param-row">
+                                        <span class="param-label">Cat Character:</span>
+                                        <span class="param-value inline-editable" data-type="char" data-char-type="cat" data-callback="updateCharacterValue">C</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="param-item">
+                                    <div class="param-row">
+                                        <span class="param-label">Mouse Character:</span>
+                                        <span class="param-value inline-editable" data-type="char" data-char-type="mouse" data-callback="updateCharacterValue">M</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="param-item">
+                                    <div class="param-row">
+                                        <span class="param-label">Obstacle Character:</span>
+                                        <span class="param-value inline-editable" data-type="char" data-char-type="obstacle" data-callback="updateCharacterValue">O</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="param-item">
+                                    <div class="param-row">
+                                        <span class="param-label">Cat Vision Character:</span>
+                                        <span class="param-value inline-editable" data-type="char" data-char-type="unknown" data-callback="updateCharacterValue">?</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="param-item">
+                                    <div class="param-row">
+                                        <span class="param-label">Mouse Vision Character:</span>
+                                        <span class="param-value inline-editable" data-type="char" data-char-type="error" data-callback="updateCharacterValue">!</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class LumonResearch {
+            constructor() {
+                this.gridWidth = 64;
+                this.gridHeight = 32;
+                this.grid = [];
+                this.catPos = { x: 0, y: 0 };
+                this.mousePos = { x: 0, y: 0 };
+                this.obstacles = [];
+                this.isTraining = false;
+                this.isPaused = false;
+                this.currentEpisode = 0;
+                this.currentStep = 0;
+                this.catWins = 0;
+                this.mouseWins = 0;
+                this.totalSteps = 0;
+                this.episodeData = [];
+                this.currentCatScore = 0;
+                this.currentMouseScore = 0;
+                
+                // Generate obstacles once for entire training session
+                this.generatePersistentObstacles();
+                this.originalObstacles = JSON.parse(JSON.stringify(this.obstacles)); // Deep copy
+                this.performanceChart = null;
+                
+                // Q-learning parameters
+                this.catQTable = {};
+                this.mouseQTable = {};
+                this.learningRate = 0.1;
+                this.discountFactor = 0.95;
+                this.epsilon = 0.1;
+                
+                this.initializeEventListeners();
+                this.initializeGrid();
+                this.updateSpeedDisplay();
+                this.updateCRTEffect(); // Initialize CRT effect
+            }
+
+            initializeEventListeners() {
+                document.getElementById('startTraining').addEventListener('click', () => this.startTraining());
+                document.getElementById('stopTraining').addEventListener('click', () => this.stopTraining());
+                document.getElementById('continueTraining').addEventListener('click', () => this.continueTraining());
+                document.getElementById('downloadTraining').addEventListener('click', () => this.downloadTraining());
+                document.getElementById('loadTraining').addEventListener('click', () => this.loadTraining());
+                document.getElementById('simulationSpeed').addEventListener('input', () => this.updateSpeedDisplay());
+                document.getElementById('fontSize').addEventListener('input', () => this.updateFontSize());
+                document.getElementById('horizontalSpacing').addEventListener('input', () => this.updateHorizontalSpacing());
+                document.getElementById('verticalSpacing').addEventListener('input', () => this.updateVerticalSpacing());
+                
+                // CRT Controls
+                const crtElements = [
+                    'crtScanlines', 'crtGlow', 'crtPixels', 'crtContrast', 
+                    'crtBrightness', 'crtSaturation', 'crtFlicker', 'crtNoise', 'crtWarp'
+                ];
+                crtElements.forEach(id => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.addEventListener('input', () => this.updateCRTEffect());
+                    }
+                });
+                
+                const crtEnabled = document.getElementById('crtEnabled');
+                if (crtEnabled) {
+                    crtEnabled.addEventListener('change', () => this.updateCRTEffect());
+                }
+                
+                // Text Pressure Controls
+                document.getElementById('textPressureEnabled').addEventListener('change', () => this.updateTextPressureSettings());
+                document.getElementById('textPressureRange').addEventListener('input', () => this.updateTextPressureSettings());
+                document.getElementById('textPressureSmoothing').addEventListener('input', () => this.updateTextPressureSettings());
+                document.getElementById('textPressureMinWeight').addEventListener('input', () => this.updateTextPressureSettings());
+                document.getElementById('textPressureMaxWeight').addEventListener('input', () => this.updateTextPressureSettings());
+                document.getElementById('textPressureMinOpacity').addEventListener('input', () => this.updateTextPressureSettings());
+                document.getElementById('textPressureMaxOpacity').addEventListener('input', () => this.updateTextPressureSettings());
+                
+                // Text Effects Controls
+                document.getElementById('textPressureBold').addEventListener('change', () => this.updateTextPressureSettings());
+                document.getElementById('textPressureItalic').addEventListener('change', () => this.updateTextPressureSettings());
+                document.getElementById('textPressureStrike').addEventListener('change', () => this.updateTextPressureSettings());
+                document.getElementById('textPressureUnderline').addEventListener('change', () => this.updateTextPressureSettings());
+                document.getElementById('textPressureScale').addEventListener('change', () => this.updateTextPressureSettings());
+                document.getElementById('textPressureScaleMin').addEventListener('input', () => this.updateTextPressureSettings());
+                document.getElementById('textPressureScaleMax').addEventListener('input', () => this.updateTextPressureSettings());
+                
+                // File upload handling
+                document.getElementById('uploadTraining').addEventListener('change', (e) => {
+                    if (e.target.files.length > 0) {
+                        this.uploadFile = e.target.files[0];
+                        const customButton = document.getElementById('uploadTrainingCustom');
+                        customButton.textContent = e.target.files[0].name;
+                        customButton.classList.add('has-file');
+                    }
+                });
+                
+                // Custom file input click handler
+                document.getElementById('uploadTrainingCustom').addEventListener('click', () => {
+                    document.getElementById('uploadTraining').click();
+                });
+                
+                // Collapsible section handlers
+                this.initializeCollapsibleSections();
+                
+                // Typography Controls
+                this.initializeTypographyControls();
+                
+                // Initialize draggable panels
+                this.initializeDraggablePanels();
+                
+                // Initialize custom slider progress
+                this.initializeSliderProgress();
+                
+                // Initialize character customization
+                this.initializeCharacterCustomization();
+                
+                // Initialize scramble text effect for footer
+                this.initializeScrambleText();
+                
+                // Initialize inline editing
+                this.initializeInlineEditing();
+                
+                // Chart close button
+                document.getElementById('chartCloseBtn').addEventListener('click', () => {
+                    document.getElementById('chartContainer').style.display = 'none';
+                    document.getElementById('gridView').style.display = 'flex';
+                });
+            }
+
+            initializeCollapsibleSections() {
+                const mainSections = [
+                    { toggle: 'settingsToggle', content: 'settingsContent' },
+                    { toggle: 'typographyToggle', content: 'typographyContent' },
+                    { toggle: 'characterToggle', content: 'characterContent' }
+                ];
+
+                const accordionSections = [
+                    // Keep empty for now to prevent accordion errors
+                ];
+
+                // Initialize main sections (normal collapsible behavior)
+                mainSections.forEach(section => {
+                    const toggle = document.getElementById(section.toggle);
+                    const content = document.getElementById(section.content);
+                    
+                    if (toggle && content) {
+                        const maxViewportHeight = window.innerHeight * 0.9;
+                        const contentHeight = Math.min(content.scrollHeight, maxViewportHeight);
+                        content.style.maxHeight = content.classList.contains('collapsed') ? '0px' : contentHeight + 'px';
+                        
+                        toggle.addEventListener('click', () => {
+                            const isCollapsed = content.classList.contains('collapsed');
+                            
+                            if (isCollapsed) {
+                                content.classList.remove('collapsed');
+                                toggle.classList.remove('collapsed');
+                                const maxViewportHeight = window.innerHeight * 0.9;
+                                const contentHeight = Math.min(content.scrollHeight, maxViewportHeight);
+                                content.style.maxHeight = contentHeight + 'px';
+                            } else {
+                                content.classList.add('collapsed');
+                                toggle.classList.add('collapsed');
+                                content.style.maxHeight = '0px';
+                            }
+                        });
+                    }
+                });
+
+                // Initialize accordion sections (only one open at a time)
+                accordionSections.forEach(section => {
+                    const toggle = document.getElementById(section.toggle);
+                    const content = document.getElementById(section.content);
+                    
+                    if (toggle && content) {
+                        const maxViewportHeight = window.innerHeight * 0.9;
+                        const contentHeight = Math.min(content.scrollHeight, maxViewportHeight);
+                        content.style.maxHeight = content.classList.contains('collapsed') ? '0px' : contentHeight + 'px';
+                        
+                        toggle.addEventListener('click', () => {
+                            const isCollapsed = content.classList.contains('collapsed');
+                            
+                            if (isCollapsed) {
+                                // Close all other accordion sections first
+                                accordionSections.forEach(otherSection => {
+                                    if (otherSection.toggle !== section.toggle) {
+                                        const otherToggle = document.getElementById(otherSection.toggle);
+                                        const otherContent = document.getElementById(otherSection.content);
+                                        if (otherToggle && otherContent) {
+                                            otherContent.classList.add('collapsed');
+                                            otherToggle.classList.add('collapsed');
+                                            otherContent.style.maxHeight = '0px';
+                                        }
+                                    }
+                                });
+                                
+                                // Then expand current section
+                                content.classList.remove('collapsed');
+                                toggle.classList.remove('collapsed');
+                                const maxViewportHeight = window.innerHeight * 0.9;
+                                const contentHeight = Math.min(content.scrollHeight, maxViewportHeight);
+                                content.style.maxHeight = contentHeight + 'px';
+                            } else {
+                                // Collapse current section
+                                content.classList.add('collapsed');
+                                toggle.classList.add('collapsed');
+                                content.style.maxHeight = '0px';
+                            }
+                        });
+                    }
+                });
+            }
+
+            initializeSliderProgress() {
+                const sliders = document.querySelectorAll('input[type="range"]');
+                
+                const updateSliderProgress = (slider) => {
+                    const value = ((slider.value - slider.min) / (slider.max - slider.min)) * 100;
+                    slider.style.setProperty('--range-progress', `${value}%`);
+                };
+                
+                sliders.forEach(slider => {
+                    // Set initial progress
+                    updateSliderProgress(slider);
+                    
+                    // Update progress on input
+                    slider.addEventListener('input', () => updateSliderProgress(slider));
+                    slider.addEventListener('change', () => updateSliderProgress(slider));
+                });
+            }
+
+            initializeTypographyControls() {
+                // Typography control definitions
+                const typographyControls = [
+                    { id: 'headerTitleSize', target: '.header h1', property: 'fontSize', display: 'headerTitleDisplay' },
+                    { id: 'sectionTitleSize', target: '.section-title', property: 'fontSize', display: 'sectionTitleDisplay' },
+                    { id: 'collapsibleTitleSize', target: '.collapsible-title', property: 'fontSize', display: 'collapsibleTitleDisplay' },
+                    { id: 'subsectionSize', target: 'h4', property: 'fontSize', display: 'subsectionDisplay' },
+                    { id: 'paramLabelSize', target: '.param-item label, .checkbox-item label', property: 'fontSize', display: 'paramLabelDisplay' },
+                    { id: 'paramRowSize', target: '.param-row', property: 'fontSize', display: 'paramRowDisplay' },
+                    { id: 'buttonSize', target: '.btn', property: 'fontSize', display: 'buttonDisplay' },
+                    { id: 'statsSize', target: '.stat-row', property: 'fontSize', display: 'statsDisplay' },
+                    { id: 'speedDisplaySize', target: '.speed-display', property: 'fontSize', display: 'speedDisplayDisplay' },
+                    { id: 'legendSize', target: '.legend', property: 'fontSize', display: 'legendDisplay' },
+                    { id: 'numberInputSize', target: '.param-row input[type="number"]', property: 'fontSize', display: 'numberInputDisplay' }
+                ];
+
+                // Initialize value display toggle
+                const showValueDisplays = document.getElementById('showValueDisplays');
+                const toggleValueDisplays = () => {
+                    const displays = document.querySelectorAll('.speed-display');
+                    displays.forEach(display => {
+                        display.style.display = showValueDisplays.checked ? 'inline' : 'none';
+                    });
+                };
+                
+                // Set initial state (hidden by default)
+                showValueDisplays.checked = false;
+                toggleValueDisplays();
+                showValueDisplays.addEventListener('change', toggleValueDisplays);
+
+                // Grid character size control
+                const gridCharSlider = document.getElementById('gridCharSize');
+                const gridCharDisplay = document.getElementById('gridCharDisplay');
+                if (gridCharSlider && gridCharDisplay) {
+                    const updateGridCharSize = () => {
+                        const value = parseFloat(gridCharSlider.value);
+                        gridCharDisplay.textContent = value + 'rem';
+                        
+                        // Apply to grid characters
+                        const grid = document.getElementById('gameGrid');
+                        if (grid) {
+                            grid.style.fontSize = value + 'rem';
+                        }
+                    };
+                    
+                    gridCharSlider.addEventListener('input', updateGridCharSize);
+                    gridCharSlider.addEventListener('change', updateGridCharSize);
+                    updateGridCharSize(); // Initialize
+                }
+
+                // Add event listeners for each control
+                typographyControls.forEach(control => {
+                    const slider = document.getElementById(control.id);
+                    const display = document.getElementById(control.display);
+                    
+                    if (slider && display) {
+                        const updateTypography = () => {
+                            const value = parseFloat(slider.value);
+                            display.textContent = value + 'rem';
+                            
+                            // Apply to all matching elements
+                            const elements = document.querySelectorAll(control.target);
+                            elements.forEach(element => {
+                                element.style[control.property] = value + 'rem';
+                            });
+                        };
+                        
+                        slider.addEventListener('input', updateTypography);
+                        slider.addEventListener('change', updateTypography);
+                        
+                        // Initialize current values
+                        updateTypography();
+                    }
+                });
+
+                // Reset button functionality
+                const resetButton = document.getElementById('resetTypography');
+                if (resetButton) {
+                    resetButton.addEventListener('click', () => {
+                        typographyControls.forEach(control => {
+                            const slider = document.getElementById(control.id);
+                            if (slider) {
+                                // Reset to current default values
+                                const defaults = {
+                                    'headerTitleSize': 5.7,
+                                    'sectionTitleSize': 1.4,
+                                    'collapsibleTitleSize': 0.9,
+                                    'subsectionSize': 1.0,
+                                    'paramLabelSize': 0.7,
+                                    'paramRowSize': 0.8,
+                                    'buttonSize': 0.7,
+                                    'statsSize': 0.8,
+                                    'speedDisplaySize': 0.8,
+                                    'legendSize': 0.9,
+                                    'numberInputSize': 0.8
+                                };
+                                
+                                slider.value = defaults[control.id] || 1;
+                                slider.dispatchEvent(new Event('input'));
+                            }
+                        });
+                    });
+                }
+            }
+
+            initializeCharacterCustomization() {
+                // Store default character mappings
+                this.characterMap = {
+                    empty: '•',
+                    cat: 'C',
+                    mouse: 'M',
+                    obstacle: 'O',
+                    unknown: '?',
+                    error: '!'
+                };
+                
+                // Initialize empty space font size
+                this.emptyCharSize = 1.6;
+                
+                // Empty space font size control (hidden input for updateEmptyCharFontSize)
+                const emptyCharSizeInput = document.getElementById('emptyCharSize');
+                if (emptyCharSizeInput) {
+                    emptyCharSizeInput.addEventListener('input', () => {
+                        this.emptyCharSize = parseFloat(emptyCharSizeInput.value);
+                        this.updateEmptyCharFontSize();
+                    });
+                }
+            }
+
+            updateLegend() {
+                const legend = document.querySelector('.legend');
+                if (legend) {
+                    // Create the new content matching the original legend format
+                    const newContent = `<span class="cat">${this.characterMap.cat || 'C'}: CAT</span> | <span class="mouse">${this.characterMap.mouse || 'M'}: MOUSE</span> | <span class="obstacle">${this.characterMap.obstacle || 'O'}: OBSTACLE</span> | <span class="cat-vision">${this.characterMap.unknown || '?'}: CAT VISION</span> | <span class="mouse-vision">${this.characterMap.error || '!'}: MOUSE VISION</span>`;
+                    
+                    // Update the content and preserve scramble structure
+                    legend.innerHTML = newContent.trim();
+                    
+                    // Re-initialize scramble text for the updated content
+                    this.reinitializeScrambleText(legend);
+                }
+            }
+            
+            reinitializeScrambleText(legend) {
+                // Extract text content while preserving structure
+                const textContent = legend.textContent;
+                let charHTML = '';
+                
+                for (let i = 0; i < textContent.length; i++) {
+                    const char = textContent[i];
+                    // Don't wrap spaces, pipes, or colons in spans to preserve natural spacing
+                    if (char === ' ' || char === '|' || char === ':') {
+                        charHTML += char;
+                    } else {
+                        charHTML += `<span class="scramble-char" data-original="${char}">${char}</span>`;
+                    }
+                }
+                
+                legend.innerHTML = charHTML;
+            }
+            
+            updateEmptyCharFontSize() {
+                const grid = document.querySelector('.grid');
+                if (grid) {
+                    // Create a CSS rule to scale empty characters
+                    const style = document.createElement('style');
+                    style.textContent = `
+                        .grid .empty-char {
+                            font-size: ${this.emptyCharSize}em !important;
+                            display: inline-block;
+                            vertical-align: baseline;
+                        }
+                    `;
+                    
+                    // Remove any existing style with the same purpose
+                    const existing = document.getElementById('empty-char-style');
+                    if (existing) {
+                        existing.remove();
+                    }
+                    
+                    style.id = 'empty-char-style';
+                    document.head.appendChild(style);
+                    
+                    // Re-render the grid to apply the new class
+                    if (this.gameGrid && this.gameGrid.length > 0) {
+                        this.renderGrid();
+                    }
+                }
+            }
+            
+            initializeScrambleText() {
+                const legend = document.querySelector('.legend');
+                if (!legend) return;
+                
+                // Split legend text into spans for each character, but preserve spaces and separators
+                const originalHTML = legend.innerHTML;
+                legend.dataset.originalContent = originalHTML;
+                
+                // Extract text content while preserving structure
+                const textContent = legend.textContent;
+                let charHTML = '';
+                
+                for (let i = 0; i < textContent.length; i++) {
+                    const char = textContent[i];
+                    // Don't wrap spaces, pipes, or colons in spans to preserve natural spacing
+                    if (char === ' ' || char === '|' || char === ':') {
+                        charHTML += char;
+                    } else {
+                        charHTML += `<span class="scramble-char" data-original="${char}">${char}</span>`;
+                    }
+                }
+                
+                legend.innerHTML = charHTML;
+                
+                // Add scramble effect on mouse move
+                legend.addEventListener('pointermove', (e) => {
+                    this.handleScrambleEffect(e, legend);
+                });
+            }
+            
+            handleScrambleEffect(e, element) {
+                const chars = element.querySelectorAll('.scramble-char');
+                const radius = 100;
+                const scrambleChars = '.:';
+                const duration = 1200;
+                
+                chars.forEach(char => {
+                    const rect = char.getBoundingClientRect();
+                    const charCenterX = rect.left + rect.width / 2;
+                    const charCenterY = rect.top + rect.height / 2;
+                    
+                    const dx = e.clientX - charCenterX;
+                    const dy = e.clientY - charCenterY;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < radius) {
+                        const intensity = 1 - (distance / radius);
+                        this.scrambleCharacter(char, intensity, scrambleChars, duration);
+                    }
+                });
+            }
+            
+            scrambleCharacter(charElement, intensity, scrambleChars, duration) {
+                // Prevent multiple scrambles on the same character
+                if (charElement.isScrambling) return;
+                
+                const original = charElement.dataset.original;
+                const scrambleLength = Math.floor(intensity * 3) + 1; // Reduced scramble cycles
+                
+                charElement.isScrambling = true;
+                let scrambleCount = 0;
+                const maxScrambles = scrambleLength;
+                const intervalDelay = 80; // Fixed delay instead of calculated
+                
+                const scrambleInterval = setInterval(() => {
+                    if (scrambleCount < maxScrambles) {
+                        const randomChar = scrambleChars[Math.floor(Math.random() * scrambleChars.length)];
+                        charElement.textContent = randomChar;
+                        scrambleCount++;
+                    } else {
+                        charElement.textContent = original;
+                        charElement.isScrambling = false;
+                        clearInterval(scrambleInterval);
+                    }
+                }, intervalDelay);
+            }
+            
+            initializeInlineEditing() {
+                // Add inline editing to all editable elements
+                document.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('inline-editable')) {
+                        this.startInlineEdit(e.target);
+                    }
+                });
+            }
+            
+            startInlineEdit(element) {
+                if (element.classList.contains('editing')) return;
+                
+                const originalValue = element.textContent;
+                const dataType = element.dataset.type || 'text';
+                const maxLength = element.dataset.maxlength || (dataType === 'char' ? 1 : 10);
+                
+                element.classList.add('editing');
+                element.contentEditable = true;
+                element.style.outline = '1px solid #7FE9E1';
+                element.style.background = 'rgba(127, 233, 225, 0.1)';
+                
+                // Select all text
+                const range = document.createRange();
+                range.selectNodeContents(element);
+                const selection = window.getSelection();
+                selection.removeAllRanges();
+                selection.addRange(range);
+                
+                const finishEdit = () => {
+                    element.classList.remove('editing');
+                    element.contentEditable = false;
+                    element.style.outline = '';
+                    element.style.background = '';
+                    
+                    let newValue = element.textContent.trim();
+                    
+                    // Validate based on data type
+                    if (dataType === 'char' && newValue.length > 1) {
+                        newValue = newValue.charAt(0);
+                    } else if (dataType === 'number') {
+                        const numValue = parseFloat(newValue);
+                        if (isNaN(numValue)) {
+                            newValue = originalValue;
+                        } else {
+                            const min = parseFloat(element.dataset.min || 0);
+                            const max = parseFloat(element.dataset.max || 1000);
+                            newValue = Math.max(min, Math.min(max, numValue)).toString();
+                        }
+                    }
+                    
+                    element.textContent = newValue;
+                    
+                    // Trigger update callback if it exists
+                    const updateCallback = element.dataset.callback;
+                    if (updateCallback && this[updateCallback]) {
+                        this[updateCallback](element, newValue, originalValue);
+                    }
+                };
+                
+                // Finish editing on Enter or loss of focus
+                const handleKeydown = (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        finishEdit();
+                        element.removeEventListener('keydown', handleKeydown);
+                        element.removeEventListener('blur', handleBlur);
+                    } else if (e.key === 'Escape') {
+                        element.textContent = originalValue;
+                        finishEdit();
+                        element.removeEventListener('keydown', handleKeydown);
+                        element.removeEventListener('blur', handleBlur);
+                    }
+                };
+                
+                const handleBlur = () => {
+                    finishEdit();
+                    element.removeEventListener('keydown', handleKeydown);
+                    element.removeEventListener('blur', handleBlur);
+                };
+                
+                element.addEventListener('keydown', handleKeydown);
+                element.addEventListener('blur', handleBlur);
+            }
+            
+            // Callback functions for different types of edits
+            updateCharacterValue(element, newValue, originalValue) {
+                const charType = element.dataset.charType;
+                if (charType && this.characterMap[charType] !== undefined) {
+                    this.characterMap[charType] = newValue;
+                    this.updateLegend();
+                    if (this.gameGrid && this.gameGrid.length > 0) {
+                        this.renderGrid();
+                    }
+                }
+            }
+            
+            updateNumericValue(element, newValue, originalValue) {
+                const inputId = element.dataset.inputId;
+                if (inputId) {
+                    const input = document.getElementById(inputId);
+                    if (input) {
+                        input.value = newValue;
+                        // Trigger the input event to update any related functionality
+                        input.dispatchEvent(new Event('input'));
+                        input.dispatchEvent(new Event('change'));
+                        
+                        // Special handling for specific controls
+                        if (inputId === 'fontSize') {
+                            this.updateFontSize();
+                        } else if (inputId === 'horizontalSpacing') {
+                            this.updateHorizontalSpacing();
+                        } else if (inputId === 'verticalSpacing') {
+                            this.updateVerticalSpacing();
+                        } else if (inputId === 'simulationSpeed') {
+                            this.updateSpeedDisplay();
+                        } else if (inputId === 'emptyCharSize') {
+                            // Update the display element if it exists
+                            const sizeDisplay = document.querySelector('[data-input-id="emptyCharSize"]');
+                            if (sizeDisplay) {
+                                sizeDisplay.textContent = parseFloat(newValue).toFixed(1);
+                            }
+                            this.emptyCharSize = parseFloat(newValue);
+                            this.updateEmptyCharFontSize();
+                        }
+                    }
+                }
+            }
+
+            initializeDraggablePanels() {
+                const draggablePanels = document.querySelectorAll('.draggable-panel');
+                
+                draggablePanels.forEach(panel => {
+                    let isDragging = false;
+                    let offsetX = 0;
+                    let offsetY = 0;
+                    let originalParent = null;
+                    let originalPosition = null;
+                    
+                    panel.addEventListener('mousedown', (e) => {
+                        // Only start dragging if clicking on the title area
+                        if (e.target.classList.contains('section-title') || e.target.closest('.section-title')) {
+                            isDragging = true;
+                            panel.classList.add('dragging');
+                            
+                            // Store original position and parent
+                            originalParent = panel.parentNode;
+                            originalPosition = {
+                                position: panel.style.position,
+                                top: panel.style.top,
+                                left: panel.style.left,
+                                width: panel.style.width,
+                                height: panel.style.height
+                            };
+                            
+                            // Calculate offset from mouse to panel corner
+                            const rect = panel.getBoundingClientRect();
+                            offsetX = e.clientX - rect.left;
+                            offsetY = e.clientY - rect.top;
+                            
+                            // Convert to fixed positioning
+                            panel.style.position = 'fixed';
+                            panel.style.left = rect.left + 'px';
+                            panel.style.top = rect.top + 'px';
+                            panel.style.width = rect.width + 'px';
+                            panel.style.height = rect.height + 'px';
+                            panel.style.zIndex = '1000';
+                            
+                            e.preventDefault();
+                        }
+                    });
+                    
+                    document.addEventListener('mousemove', (e) => {
+                        if (isDragging && panel.classList.contains('dragging')) {
+                            panel.style.left = (e.clientX - offsetX) + 'px';
+                            panel.style.top = (e.clientY - offsetY) + 'px';
+                        }
+                    });
+                    
+                    document.addEventListener('mouseup', () => {
+                        if (isDragging) {
+                            isDragging = false;
+                            panel.classList.remove('dragging');
+                            
+                            // Option to restore to original position (double-click title to reset)
+                            let resetTimeout = setTimeout(() => {
+                                // Keep in dragged position
+                            }, 300);
+                        }
+                    });
+                    
+                    // Double-click title to reset position
+                    const title = panel.querySelector('.section-title');
+                    if (title) {
+                        title.addEventListener('dblclick', () => {
+                            // Reset to original position
+                            panel.style.position = originalPosition.position;
+                            panel.style.top = originalPosition.top;
+                            panel.style.left = originalPosition.left;
+                            panel.style.width = originalPosition.width;
+                            panel.style.height = originalPosition.height;
+                            panel.style.zIndex = '';
+                            
+                            // Re-attach to original parent if needed
+                            if (originalParent && !originalParent.contains(panel)) {
+                                originalParent.appendChild(panel);
+                            }
+                        });
+                    }
+                });
+            }
+
+            updateSpeedDisplay() {
+                const speedInput = document.getElementById('simulationSpeed');
+                const display = document.getElementById('speedDisplay');
+                
+                if (!speedInput || !display) return;
+                
+                const speed = parseInt(speedInput.value);
+                
+                if (speed <= 10) display.textContent = 'Very Slow';
+                else if (speed <= 50) display.textContent = 'Slow';
+                else if (speed <= 150) display.textContent = 'Medium';
+                else if (speed <= 300) display.textContent = 'Fast';
+                else display.textContent = 'Very Fast';
+            }
+
+            updateFontSize() {
+                const fontSize = parseFloat(document.getElementById('fontSize').value);
+                const display = document.getElementById('fontSizeDisplay');
+                const grid = document.getElementById('gameGrid');
+                
+                display.textContent = fontSize.toFixed(1) + 'rem';
+                grid.style.fontSize = fontSize + 'rem';
+            }
+
+            updateHorizontalSpacing() {
+                const spacing = parseFloat(document.getElementById('horizontalSpacing').value);
+                const display = document.getElementById('horizontalSpacingDisplay');
+                const grid = document.getElementById('gameGrid');
+                
+                display.textContent = spacing.toFixed(1) + 'rem';
+                grid.style.letterSpacing = spacing + 'rem';
+            }
+
+            updateVerticalSpacing() {
+                const spacing = parseFloat(document.getElementById('verticalSpacing').value);
+                const display = document.getElementById('verticalSpacingDisplay');
+                const grid = document.getElementById('gameGrid');
+                
+                display.textContent = spacing.toFixed(1) + 'rem';
+                grid.style.lineHeight = spacing + 'rem';
+            }
+            
+            updateCRTEffect() {
+                const enabledEl = document.getElementById('crtEnabled');
+                const enabled = enabledEl ? enabledEl.checked : false;
+                
+                const scanlinesEl = document.getElementById('crtScanlines');
+                const scanlines = scanlinesEl ? parseFloat(scanlinesEl.value) : 0.9;
+                
+                const glowEl = document.getElementById('crtGlow');
+                const glow = glowEl ? parseFloat(glowEl.value) : 0.7;
+                
+                const pixelsEl = document.getElementById('crtPixels');
+                const pixels = pixelsEl ? parseFloat(pixelsEl.value) : 0;
+                
+                const contrastEl = document.getElementById('crtContrast');
+                const contrast = contrastEl ? parseFloat(contrastEl.value) : 1;
+                
+                const brightnessEl = document.getElementById('crtBrightness');
+                const brightness = brightnessEl ? parseFloat(brightnessEl.value) : 1;
+                
+                const saturationEl = document.getElementById('crtSaturation');
+                const saturation = saturationEl ? parseFloat(saturationEl.value) : 1;
+                
+                const flickerEl = document.getElementById('crtFlicker');
+                const flicker = flickerEl ? parseFloat(flickerEl.value) : 0;
+                
+                const noiseEl = document.getElementById('crtNoise');
+                const noise = noiseEl ? parseFloat(noiseEl.value) : 0;
+                
+                const warpEl = document.getElementById('crtWarp');
+                const warp = warpEl ? parseFloat(warpEl.value) : 0;
+                
+                // Update displays
+                const scanlinesDisplay = document.getElementById('scanlinesDisplay');
+                if (scanlinesDisplay) scanlinesDisplay.textContent = scanlines.toFixed(1);
+                
+                const glowDisplay = document.getElementById('glowDisplay');
+                if (glowDisplay) glowDisplay.textContent = glow.toFixed(1);
+                
+                const pixelsDisplay = document.getElementById('pixelsDisplay');
+                if (pixelsDisplay) pixelsDisplay.textContent = pixels.toFixed(1);
+                
+                const contrastDisplay = document.getElementById('contrastDisplay');
+                if (contrastDisplay) contrastDisplay.textContent = contrast.toFixed(1);
+                
+                const brightnessDisplay = document.getElementById('brightnessDisplay');
+                if (brightnessDisplay) brightnessDisplay.textContent = brightness.toFixed(2);
+                
+                const saturationDisplay = document.getElementById('saturationDisplay');
+                if (saturationDisplay) saturationDisplay.textContent = saturation.toFixed(1);
+                
+                const flickerDisplay = document.getElementById('flickerDisplay');
+                if (flickerDisplay) flickerDisplay.textContent = flicker.toFixed(1);
+                
+                const noiseDisplay = document.getElementById('noiseDisplay');
+                if (noiseDisplay) noiseDisplay.textContent = noise.toFixed(1);
+                
+                const warpDisplay = document.getElementById('warpDisplay');
+                if (warpDisplay) warpDisplay.textContent = warp.toFixed(1);
+                
+                const overlay = document.querySelector('.crt-overlay');
+                const container = document.querySelector('.container');
+                const crtScreen = document.querySelector('.crt-screen');
+                
+                if (!enabled) {
+                    overlay.style.display = 'none';
+                    container.classList.remove('crt-screen');
+                    return;
+                }
+                
+                overlay.style.display = 'block';
+                container.classList.add('crt-screen');
+                
+                // Update CSS custom properties for dynamic control
+                document.documentElement.style.setProperty('--crt-scanlines', scanlines);
+                document.documentElement.style.setProperty('--crt-glow', glow);
+                document.documentElement.style.setProperty('--crt-pixels', pixels);
+                
+                // Apply filter effects to CRT screen
+                if (crtScreen) {
+                    crtScreen.style.filter = `
+                        contrast(${contrast}) 
+                        brightness(${brightness}) 
+                        saturate(${saturation})
+                    `;
+                    
+                    // Apply screen warp effect (CRT barrel distortion)
+                    if (warp > 0) {
+                        const warpIntensity = warp * 0.02; // Reduced intensity for more realistic effect
+                        
+                        // Create barrel distortion using CSS clip-path and transform
+                        container.style.transform = `perspective(1000px) rotateX(${warpIntensity * 2}deg)`;
+                        container.style.borderRadius = `${warpIntensity * 30}px`;
+                        
+                        // Apply barrel distortion effect using CSS filter
+                        const barrelEffect = `
+                            contrast(${contrast}) 
+                            brightness(${brightness}) 
+                            saturate(${saturation})
+                        `;
+                        
+                        crtScreen.style.filter = barrelEffect;
+                        
+                        // Create the classic CRT curvature effect
+                        const curveAmount = warpIntensity * 15;
+                        container.style.clipPath = `
+                            polygon(
+                                ${curveAmount}% ${curveAmount}%, 
+                                ${100 - curveAmount}% ${curveAmount}%, 
+                                ${100 - curveAmount * 0.7}% ${100 - curveAmount * 0.7}%, 
+                                ${curveAmount * 0.7}% ${100 - curveAmount * 0.7}%
+                            )
+                        `;
+                        
+                        // Add subtle corner darkening (vignette effect)
+                        const vignetteOverlay = document.getElementById('crt-vignette') || document.createElement('div');
+                        if (!document.getElementById('crt-vignette')) {
+                            vignetteOverlay.id = 'crt-vignette';
+                            vignetteOverlay.style.cssText = `
+                                position: absolute;
+                                top: 0;
+                                left: 0;
+                                right: 0;
+                                bottom: 0;
+                                pointer-events: none;
+                                z-index: 5;
+                            `;
+                            container.appendChild(vignetteOverlay);
+                        }
+                        
+                        vignetteOverlay.style.background = `
+                            radial-gradient(ellipse at center, 
+                                transparent 0%, 
+                                transparent ${60 - warpIntensity * 15}%, 
+                                rgba(0,0,0,${warpIntensity * 0.3}) 85%, 
+                                rgba(0,0,0,${warpIntensity * 0.6}) 100%
+                            )
+                        `;
+                        
+                    } else {
+                        container.style.transform = 'none';
+                        container.style.borderRadius = '0px';
+                        container.style.clipPath = 'none';
+                        
+                        // Remove vignette overlay
+                        const vignetteOverlay = document.getElementById('crt-vignette');
+                        if (vignetteOverlay) {
+                            vignetteOverlay.remove();
+                        }
+                    }
+                    
+                    // Apply flicker effect
+                    if (flicker > 0) {
+                        crtScreen.style.animation = `crt-flicker ${0.1 + (1 - flicker) * 0.4}s infinite`;
+                    } else {
+                        crtScreen.style.animation = 'none';
+                    }
+                }
+                
+                // Apply noise effect to overlay
+                if (noise > 0) {
+                    // Create animated noise pattern that matches color scheme
+                    const noiseIntensity = noise * 0.03;
+                    overlay.style.background = `
+                        radial-gradient(
+                            circle at ${Math.random() * 100}% ${Math.random() * 100}%,
+                            rgba(127, 233, 225, ${noiseIntensity}) 1px,
+                            transparent 1px
+                        ),
+                        radial-gradient(
+                            circle at ${Math.random() * 100}% ${Math.random() * 100}%,
+                            rgba(127, 233, 225, ${noiseIntensity * 0.5}) 1px,
+                            transparent 1px
+                        )
+                    `;
+                    overlay.style.backgroundSize = '3px 3px, 5px 5px';
+                    
+                    // Animate noise for dynamic effect
+                    if (!this.noiseInterval) {
+                        this.noiseInterval = setInterval(() => {
+                            if (noise > 0) {
+                                const currentNoise = parseFloat(document.getElementById('crtNoise').value);
+                                const intensity = currentNoise * 0.03;
+                                overlay.style.background = `
+                                    radial-gradient(
+                                        circle at ${Math.random() * 100}% ${Math.random() * 100}%,
+                                        rgba(127, 233, 225, ${intensity}) 1px,
+                                        transparent 1px
+                                    ),
+                                    radial-gradient(
+                                        circle at ${Math.random() * 100}% ${Math.random() * 100}%,
+                                        rgba(127, 233, 225, ${intensity * 0.5}) 1px,
+                                        transparent 1px
+                                    )
+                                `;
+                            }
+                        }, 100);
+                    }
+                } else {
+                    overlay.style.background = 'none';
+                    if (this.noiseInterval) {
+                        clearInterval(this.noiseInterval);
+                        this.noiseInterval = null;
+                    }
+                }
+            }
+
+            updateTextPressureSettings() {
+                const enabled = document.getElementById('textPressureEnabled').checked;
+                const range = parseInt(document.getElementById('textPressureRange').value);
+                const smoothing = parseInt(document.getElementById('textPressureSmoothing').value);
+                const minWeight = parseInt(document.getElementById('textPressureMinWeight').value);
+                const maxWeight = parseInt(document.getElementById('textPressureMaxWeight').value);
+                const minOpacity = parseFloat(document.getElementById('textPressureMinOpacity').value);
+                const maxOpacity = parseFloat(document.getElementById('textPressureMaxOpacity').value);
+                
+                // Text Effects
+                const boldEffect = document.getElementById('textPressureBold').checked;
+                const italicEffect = document.getElementById('textPressureItalic').checked;
+                const strikeEffect = document.getElementById('textPressureStrike').checked;
+                const underlineEffect = document.getElementById('textPressureUnderline').checked;
+                const scaleEffect = document.getElementById('textPressureScale').checked;
+                const scaleMin = parseFloat(document.getElementById('textPressureScaleMin').value);
+                const scaleMax = parseFloat(document.getElementById('textPressureScaleMax').value);
+                
+                // Update displays
+                document.getElementById('rangeDisplay').textContent = range + 'px';
+                document.getElementById('smoothingDisplay').textContent = smoothing;
+                document.getElementById('minWeightDisplay').textContent = minWeight;
+                document.getElementById('maxWeightDisplay').textContent = maxWeight;
+                document.getElementById('minOpacityDisplay').textContent = minOpacity.toFixed(1);
+                document.getElementById('maxOpacityDisplay').textContent = maxOpacity.toFixed(1);
+                document.getElementById('scaleMinDisplay').textContent = scaleMin.toFixed(1);
+                document.getElementById('scaleMaxDisplay').textContent = scaleMax.toFixed(1);
+                
+                // Store settings globally for the text pressure effect
+                this.textPressureSettings = {
+                    enabled,
+                    range,
+                    smoothing,
+                    minWeight,
+                    maxWeight,
+                    minOpacity,
+                    maxOpacity,
+                    boldEffect,
+                    italicEffect,
+                    strikeEffect,
+                    underlineEffect,
+                    scaleEffect,
+                    scaleMin,
+                    scaleMax
+                };
+            }
+
+            initTextPressureTitle() {
+                // Initialize settings first
+                this.updateTextPressureSettings();
+                
+                const title = document.querySelector('.header h1');
+                const text = title.textContent;
+                const chars = text.split('');
+                
+                // Replace text with individual character spans
+                title.innerHTML = chars.map((char, i) => 
+                    `<span class="text-pressure-char" data-index="${i}">${char === ' ' ? '&nbsp;' : char}</span>`
+                ).join('');
+                
+                const spans = title.querySelectorAll('.text-pressure-char');
+                
+                let mouseX = 0;
+                let mouseY = 0;
+                let targetX = 0;
+                let targetY = 0;
+                
+                const handleMouseMove = (e) => {
+                    targetX = e.clientX;
+                    targetY = e.clientY;
+                };
+                
+                const animate = () => {
+                    if (!this.textPressureSettings.enabled) {
+                        // Reset to default when disabled
+                        spans.forEach(span => {
+                            span.style.fontWeight = '600';
+                            span.style.opacity = '1';
+                        });
+                        requestAnimationFrame(animate);
+                        return;
+                    }
+                    
+                    const smoothing = this.textPressureSettings.smoothing;
+                    mouseX += (targetX - mouseX) / smoothing;
+                    mouseY += (targetY - mouseY) / smoothing;
+                    
+                    const maxDist = this.textPressureSettings.range;
+                    
+                    spans.forEach(span => {
+                        const rect = span.getBoundingClientRect();
+                        const charCenterX = rect.left + rect.width / 2;
+                        const charCenterY = rect.top + rect.height / 2;
+                        
+                        const distance = Math.sqrt(
+                            Math.pow(mouseX - charCenterX, 2) + 
+                            Math.pow(mouseY - charCenterY, 2)
+                        );
+                        
+                        // Calculate effects based on distance
+                        const getAttr = (distance, minVal, maxVal) => {
+                            if (distance > maxDist) return minVal;
+                            const normalizedDistance = distance / maxDist;
+                            return minVal + (maxVal - minVal) * (1 - normalizedDistance);
+                        };
+                        
+                        // Weight effect (configurable min to max)
+                        const weight = this.textPressureSettings.boldEffect ? 
+                            Math.floor(getAttr(distance, 
+                                this.textPressureSettings.minWeight, 
+                                this.textPressureSettings.maxWeight
+                            )) : 600;
+                        
+                        // Alpha effect (configurable min to max)
+                        const alpha = getAttr(distance, 
+                            this.textPressureSettings.minOpacity, 
+                            this.textPressureSettings.maxOpacity
+                        ).toFixed(2);
+                        
+                        // Scale effect
+                        const scale = this.textPressureSettings.scaleEffect ?
+                            getAttr(distance, 
+                                this.textPressureSettings.scaleMin, 
+                                this.textPressureSettings.scaleMax
+                            ).toFixed(2) : 1;
+                        
+                        // Apply effects
+                        span.style.fontWeight = weight;
+                        span.style.opacity = alpha;
+                        span.style.fontStyle = this.textPressureSettings.italicEffect && distance <= maxDist ? 'italic' : 'normal';
+                        span.style.textDecoration = this.getTextDecoration(distance, maxDist);
+                        span.style.transform = `scale(${scale})`;
+                        span.style.transformOrigin = 'center';
+                        span.style.display = 'inline-block';
+                    });
+                    
+                    requestAnimationFrame(animate);
+                };
+                
+                document.addEventListener('mousemove', handleMouseMove);
+                animate();
+            }
+
+            getTextDecoration(distance, maxDist) {
+                const decorations = [];
+                
+                if (this.textPressureSettings.strikeEffect && distance <= maxDist) {
+                    decorations.push('line-through');
+                }
+                
+                if (this.textPressureSettings.underlineEffect && distance <= maxDist) {
+                    decorations.push('underline');
+                }
+                
+                return decorations.length > 0 ? decorations.join(' ') : 'none';
+            }
+
+            initializeGrid() {
+                this.grid = Array(this.gridHeight).fill().map(() => Array(this.gridWidth).fill(this.characterMap?.empty || '•'));
+                this.placeAgentsAndObstacles();
+                this.renderGrid();
+            }
+
+            generatePersistentObstacles() {
+                const obstacleCount = parseInt(document.getElementById('obstacleCount').value);
+                this.obstacles = [];
+                
+                for (let i = 0; i < obstacleCount; i++) {
+                    let pos;
+                    do {
+                        pos = {
+                            x: Math.floor(Math.random() * (this.gridWidth - 2)) + 1,
+                            y: Math.floor(Math.random() * (this.gridHeight - 2)) + 1
+                        };
+                    } while (this.obstacles.some(obs => obs.x === pos.x && obs.y === pos.y));
+                    this.obstacles.push(pos);
+                }
+            }
+
+            establishTrainingSpawnPoints() {
+                // Generate obstacles for training session
+                this.generatePersistentObstacles();
+                
+                // Establish fixed spawn points for this training session
+                do {
+                    this.trainingCatSpawn = {
+                        x: Math.floor(Math.random() * (this.gridWidth - 2)) + 1,
+                        y: Math.floor(Math.random() * (this.gridHeight - 2)) + 1
+                    };
+                } while (this.obstacles.some(obs => obs.x === this.trainingCatSpawn.x && obs.y === this.trainingCatSpawn.y));
+                
+                do {
+                    this.trainingMouseSpawn = {
+                        x: Math.floor(Math.random() * (this.gridWidth - 2)) + 1,
+                        y: Math.floor(Math.random() * (this.gridHeight - 2)) + 1
+                    };
+                } while (
+                    (this.trainingMouseSpawn.x === this.trainingCatSpawn.x && this.trainingMouseSpawn.y === this.trainingCatSpawn.y) ||
+                    this.obstacles.some(obs => obs.x === this.trainingMouseSpawn.x && obs.y === this.trainingMouseSpawn.y)
+                );
+                
+                console.log('Training spawn points established:', {
+                    cat: this.trainingCatSpawn,
+                    mouse: this.trainingMouseSpawn,
+                    obstacles: this.obstacles.length
+                });
+            }
+
+            placeAgentsAndObstacles() {
+                // Clear previous positions
+                this.grid = Array(this.gridHeight).fill().map(() => Array(this.gridWidth).fill(this.characterMap?.empty || '•'));
+                
+                // Reset obstacles to their original positions
+                this.obstacles = JSON.parse(JSON.stringify(this.originalObstacles));
+                
+                // Use consistent spawn points during training, random otherwise
+                if (this.isTraining && this.trainingCatSpawn && this.trainingMouseSpawn) {
+                    this.catPos = { ...this.trainingCatSpawn };
+                    this.mousePos = { ...this.trainingMouseSpawn };
+                } else {
+                    // Place cat (ensure it's not on an obstacle)
+                    do {
+                        this.catPos = {
+                            x: Math.floor(Math.random() * (this.gridWidth - 2)) + 1,
+                            y: Math.floor(Math.random() * (this.gridHeight - 2)) + 1
+                        };
+                    } while (this.obstacles.some(obs => obs.x === this.catPos.x && obs.y === this.catPos.y));
+                    
+                    // Place mouse (ensure it's not on the cat or obstacles)
+                    do {
+                        this.mousePos = {
+                            x: Math.floor(Math.random() * (this.gridWidth - 2)) + 1,
+                            y: Math.floor(Math.random() * (this.gridHeight - 2)) + 1
+                        };
+                    } while (
+                        (this.mousePos.x === this.catPos.x && this.mousePos.y === this.catPos.y) ||
+                        this.obstacles.some(obs => obs.x === this.mousePos.x && obs.y === this.mousePos.y)
+                    );
+                }
+                
+                // Update grid
+                this.updateGridDisplay();
+            }
+
+            updateGridDisplay() {
+                // Clear grid
+                for (let y = 0; y < this.gridHeight; y++) {
+                    for (let x = 0; x < this.gridWidth; x++) {
+                        this.grid[y][x] = this.characterMap?.empty || '•';
+                    }
+                }
+                
+                // Add vision if enabled
+                if (document.getElementById('toggleVision').checked) {
+                    this.addVisionToGrid();
+                }
+                
+                // Place obstacles
+                this.obstacles.forEach(obs => {
+                    if (this.grid[obs.y][obs.x] === (this.characterMap?.empty || '•')) {
+                        this.grid[obs.y][obs.x] = this.characterMap?.obstacle || 'O';
+                    }
+                });
+                
+                // Place agents (they override everything else)
+                this.grid[this.catPos.y][this.catPos.x] = this.characterMap?.cat || 'C';
+                this.grid[this.mousePos.y][this.mousePos.x] = this.characterMap?.mouse || 'M';
+            }
+
+            addVisionToGrid() {
+                const catVision = parseInt(document.getElementById('predatorVision').value);
+                const mouseVision = parseInt(document.getElementById('preyVision').value);
+                
+                // Add cat vision
+                const catVisibleCells = this.getVisibleCells(this.catPos, catVision);
+                catVisibleCells.forEach(cell => {
+                    if (this.grid[cell.y][cell.x] === (this.characterMap?.empty || '•')) {
+                        this.grid[cell.y][cell.x] = this.characterMap?.unknown || '?';
+                    }
+                });
+                
+                // Add mouse vision
+                const mouseVisibleCells = this.getVisibleCells(this.mousePos, mouseVision);
+                mouseVisibleCells.forEach(cell => {
+                    if (this.grid[cell.y][cell.x] === (this.characterMap?.empty || '•')) {
+                        this.grid[cell.y][cell.x] = this.characterMap?.error || '!';
+                    }
+                });
+            }
+
+            getVisibleCells(pos, range) {
+                const visible = [];
+                
+                // Use circular vision instead of square
+                for (let dx = -range; dx <= range; dx++) {
+                    for (let dy = -range; dy <= range; dy++) {
+                        if (dx === 0 && dy === 0) continue;
+                        
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        if (distance > range) continue; // Skip if outside circular range
+                        
+                        const targetX = pos.x + dx;
+                        const targetY = pos.y + dy;
+                        
+                        if (targetX >= 0 && targetX < this.gridWidth && 
+                            targetY >= 0 && targetY < this.gridHeight) {
+                            
+                            if (this.hasLineOfSight(pos, { x: targetX, y: targetY })) {
+                                visible.push({ x: targetX, y: targetY });
+                            }
+                        }
+                    }
+                }
+                
+                return visible;
+            }
+
+            hasLineOfSight(from, to) {
+                // Use Bresenham's line algorithm to check line of sight
+                const dx = Math.abs(to.x - from.x);
+                const dy = Math.abs(to.y - from.y);
+                const sx = from.x < to.x ? 1 : -1;
+                const sy = from.y < to.y ? 1 : -1;
+                let err = dx - dy;
+                
+                let x = from.x;
+                let y = from.y;
+                
+                // Check each step along the line
+                while (x !== to.x || y !== to.y) {
+                    const e2 = 2 * err;
+                    if (e2 > -dy) {
+                        err -= dy;
+                        x += sx;
+                    }
+                    if (e2 < dx) {
+                        err += dx;
+                        y += sy;
+                    }
+                    
+                    // If we hit an obstacle before reaching the target, vision is blocked
+                    if (this.obstacles.some(obs => obs.x === x && obs.y === y)) {
+                        return false;
+                    }
+                }
+                
+                return true; // Clear line of sight to target
+            }
+
+            renderGrid() {
+                if (!document.getElementById('toggleRender').checked) return;
+                
+                let gridText = '';
+                for (let y = 0; y < this.gridHeight; y++) {
+                    for (let x = 0; x < this.gridWidth; x++) {
+                        gridText += this.grid[y][x];
+                    }
+                    gridText += '\n';
+                }
+                
+                document.getElementById('gameGrid').textContent = gridText;
+            }
+
+            getState(agentPos, targetPos) {
+                const dx = targetPos.x - agentPos.x;
+                const dy = targetPos.y - agentPos.y;
+                const distance = Math.abs(dx) + Math.abs(dy);
+                
+                return `${agentPos.x},${agentPos.y},${dx},${dy},${distance}`;
+            }
+
+            getAction(agent, state) {
+                const actions = ['up', 'down', 'left', 'right'];
+                const qTable = agent === 'cat' ? this.catQTable : this.mouseQTable;
+                
+                if (Math.random() < this.epsilon || !qTable[state]) {
+                    return actions[Math.floor(Math.random() * actions.length)];
+                }
+                
+                // Initialize with random action to avoid bias
+                let bestActions = [];
+                let bestValue = -Infinity;
+                
+                for (let action of actions) {
+                    const value = qTable[state][action] || 0;
+                    if (value > bestValue) {
+                        bestValue = value;
+                        bestActions = [action];
+                    } else if (value === bestValue) {
+                        bestActions.push(action);
+                    }
+                }
+                
+                // Randomly select from best actions to break ties
+                const bestAction = bestActions[Math.floor(Math.random() * bestActions.length)];
+                
+                return bestAction;
+            }
+
+            updateQTable(agent, state, action, reward, nextState) {
+                const qTable = agent === 'cat' ? this.catQTable : this.mouseQTable;
+                
+                if (!qTable[state]) {
+                    qTable[state] = { up: 0, down: 0, left: 0, right: 0 };
+                }
+                
+                if (!qTable[nextState]) {
+                    qTable[nextState] = { up: 0, down: 0, left: 0, right: 0 };
+                }
+                
+                const currentQ = qTable[state][action];
+                const maxNextQ = Math.max(...Object.values(qTable[nextState]));
+                const newQ = currentQ + this.learningRate * (reward + this.discountFactor * maxNextQ - currentQ);
+                
+                qTable[state][action] = newQ;
+            }
+
+            moveAgent(pos, action) {
+                const newPos = { ...pos };
+                
+                switch (action) {
+                    case 'up': newPos.y = Math.max(0, pos.y - 1); break;
+                    case 'down': newPos.y = Math.min(this.gridHeight - 1, pos.y + 1); break;
+                    case 'left': newPos.x = Math.max(0, pos.x - 1); break;
+                    case 'right': newPos.x = Math.min(this.gridWidth - 1, pos.x + 1); break;
+                }
+                
+                // Handle obstacle pushing
+                const obstacleIndex = this.obstacles.findIndex(obs => obs.x === newPos.x && obs.y === newPos.y);
+                if (obstacleIndex !== -1) {
+                    const obstacle = this.obstacles[obstacleIndex];
+                    const pushPos = { ...obstacle };
+                    
+                    switch (action) {
+                        case 'up': pushPos.y = Math.max(0, obstacle.y - 1); break;
+                        case 'down': pushPos.y = Math.min(this.gridHeight - 1, obstacle.y + 1); break;
+                        case 'left': pushPos.x = Math.max(0, obstacle.x - 1); break;
+                        case 'right': pushPos.x = Math.min(this.gridWidth - 1, obstacle.x + 1); break;
+                    }
+                    
+                    // Check if push position is valid (not another obstacle)
+                    const canPush = !this.obstacles.some(obs => obs.x === pushPos.x && obs.y === pushPos.y);
+                    
+                    if (canPush) {
+                        this.obstacles[obstacleIndex] = pushPos;
+                        return newPos;
+                    } else {
+                        return pos; // Can't move, obstacle can't be pushed
+                    }
+                }
+                
+                return newPos;
+            }
+
+            calculateReward(agent, oldPos, newPos, targetPos, caught) {
+                if (caught) {
+                    return agent === 'cat' ? 100 : -100;
+                }
+                
+                const oldDistance = Math.abs(oldPos.x - targetPos.x) + Math.abs(oldPos.y - targetPos.y);
+                const newDistance = Math.abs(newPos.x - targetPos.x) + Math.abs(newPos.y - targetPos.y);
+                
+                if (agent === 'cat') {
+                    const catCanSee = this.getVisibleCells(oldPos, parseInt(document.getElementById('predatorVision').value))
+                        .some(cell => cell.x === targetPos.x && cell.y === targetPos.y);
+                    
+                    if (catCanSee && newDistance < oldDistance) return 5;
+                    if (!catCanSee || newDistance > oldDistance) return -1;
+                } else {
+                    const mouseCanSee = this.getVisibleCells(oldPos, parseInt(document.getElementById('preyVision').value))
+                        .some(cell => cell.x === targetPos.x && cell.y === targetPos.y);
+                    
+                    if (!mouseCanSee && newDistance > oldDistance) return 5;
+                    if (mouseCanSee || newDistance < oldDistance) return -1;
+                }
+                
+                return 0;
+            }
+
+            async runEpisode() {
+                this.placeAgentsAndObstacles();
+                const maxSteps = parseInt(document.getElementById('stepCount').value);
+                let episodeSteps = 0;
+                this.currentCatScore = 0;
+                this.currentMouseScore = 0;
+                
+                for (let step = 0; step < maxSteps && this.isTraining && !this.isPaused; step++) {
+                    this.currentStep = step;
+                    episodeSteps = step + 1;
+                    
+                    // Get states
+                    const catState = this.getState(this.catPos, this.mousePos);
+                    const mouseState = this.getState(this.mousePos, this.catPos);
+                    
+                    // Get actions
+                    const catAction = this.getAction('cat', catState);
+                    const mouseAction = this.getAction('mouse', mouseState);
+                    
+                    // Store old positions
+                    const oldCatPos = { ...this.catPos };
+                    const oldMousePos = { ...this.mousePos };
+                    
+                    // Move agents
+                    this.catPos = this.moveAgent(this.catPos, catAction);
+                    this.mousePos = this.moveAgent(this.mousePos, mouseAction);
+                    
+                    // Check if caught
+                    const caught = this.catPos.x === this.mousePos.x && this.catPos.y === this.mousePos.y;
+                    
+                    // Calculate rewards
+                    const catReward = this.calculateReward('cat', oldCatPos, this.catPos, this.mousePos, caught);
+                    const mouseReward = this.calculateReward('mouse', oldMousePos, this.mousePos, this.catPos, caught);
+                    
+                    // Update current episode scores
+                    this.currentCatScore += catReward;
+                    this.currentMouseScore += mouseReward;
+                    
+                    // Get new states
+                    const newCatState = this.getState(this.catPos, this.mousePos);
+                    const newMouseState = this.getState(this.mousePos, this.catPos);
+                    
+                    // Update Q-tables
+                    this.updateQTable('cat', catState, catAction, catReward, newCatState);
+                    this.updateQTable('mouse', mouseState, mouseAction, mouseReward, newMouseState);
+                    
+                    // Update display
+                    this.updateGridDisplay();
+                    this.renderGrid();
+                    this.updateStats();
+                    
+                    // Check if episode ended
+                    if (caught) {
+                        this.catWins++;
+                        break;
+                    }
+                    
+                    // Add delay based on speed setting
+                    const speed = parseInt(document.getElementById('simulationSpeed').value);
+                    if (speed < 500) {
+                        await new Promise(resolve => setTimeout(resolve, 500 - speed));
+                    } else {
+                        // For very fast speeds, yield control to prevent UI freeze
+                        if (step % 10 === 0) {
+                            await new Promise(resolve => setTimeout(resolve, 1));
+                        }
+                    }
+                }
+                
+                // If we reached max steps without catching, mouse wins
+                if (episodeSteps >= maxSteps && this.catPos.x !== this.mousePos.x || this.catPos.y !== this.mousePos.y) {
+                    this.mouseWins++;
+                }
+                
+                this.totalSteps += episodeSteps;
+                
+                // Record episode data for chart
+                const catWinRate = (this.catWins / (this.currentEpisode + 1)) * 100;
+                const mouseWinRate = (this.mouseWins / (this.currentEpisode + 1)) * 100;
+                
+                this.episodeData.push({
+                    episode: this.currentEpisode + 1,
+                    catWinRate: catWinRate,
+                    mouseWinRate: mouseWinRate
+                });
+            }
+
+            async startTraining() {
+                this.isTraining = true;
+                this.isPaused = false;
+                this.currentEpisode = 0;
+                this.currentStep = 0;
+                this.catWins = 0;
+                this.mouseWins = 0;
+                this.totalSteps = 0;
+                this.episodeData = [];
+                
+                // Establish consistent spawn points for this training session
+                this.establishTrainingSpawnPoints();
+                
+                document.getElementById('trainingStatus').textContent = 'Training';
+                this.lockParameters(true);
+                
+                const totalEpisodes = parseInt(document.getElementById('episodeCount').value);
+                
+                for (let episode = 0; episode < totalEpisodes && this.isTraining; episode++) {
+                    if (this.isPaused) {
+                        document.getElementById('trainingStatus').textContent = 'Paused';
+                        break;
+                    }
+                    
+                    this.currentEpisode = episode;
+                    await this.runEpisode();
+                    this.updateStats();
+                }
+                
+                if (this.isTraining && !this.isPaused) {
+                    this.isTraining = false;
+                    document.getElementById('trainingStatus').textContent = 'Completed';
+                    this.lockParameters(false);
+                    this.showPerformanceChart();
+                }
+            }
+
+            stopTraining() {
+                this.isTraining = false;
+                this.isPaused = true;
+                document.getElementById('trainingStatus').textContent = 'Stopped';
+                this.lockParameters(false);
+            }
+
+            continueTraining() {
+                if (this.isPaused) {
+                    this.isPaused = false;
+                    this.startTraining();
+                } else {
+                    this.startTraining();
+                }
+            }
+
+            lockParameters(lock) {
+                const parameterIds = [
+                    'episodeCount', 'stepCount', 'predatorVision', 'preyVision', 'obstacleCount'
+                ];
+                
+                parameterIds.forEach(id => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.disabled = lock;
+                        if (lock) {
+                            element.style.opacity = '0.5';
+                            element.style.cursor = 'not-allowed';
+                        } else {
+                            element.style.opacity = '1';
+                            element.style.cursor = 'default';
+                        }
+                    }
+                });
+            }
+
+            updateStats() {
+                document.getElementById('currentEpisode').textContent = this.currentEpisode + 1;
+                document.getElementById('currentStep').textContent = this.currentStep + 1;
+                document.getElementById('catWins').textContent = this.catWins;
+                document.getElementById('mouseWins').textContent = this.mouseWins;
+                document.getElementById('currentCatScore').textContent = this.currentCatScore;
+                document.getElementById('currentMouseScore').textContent = this.currentMouseScore;
+                document.getElementById('obstacleCountDisplay').textContent = this.obstacles ? this.obstacles.length : 0;
+                
+                const totalGames = this.catWins + this.mouseWins;
+                if (totalGames > 0) {
+                    document.getElementById('catWinRate').textContent = Math.round((this.catWins / totalGames) * 100) + '%';
+                    document.getElementById('mouseWinRate').textContent = Math.round((this.mouseWins / totalGames) * 100) + '%';
+                    document.getElementById('avgSteps').textContent = Math.round(this.totalSteps / totalGames);
+                }
+            }
+
+            showPerformanceChart() {
+                document.getElementById('gridView').style.display = 'none';
+                document.getElementById('chartContainer').style.display = 'block';
+                
+                const ctx = document.getElementById('performanceChart').getContext('2d');
+                
+                if (this.performanceChart) {
+                    this.performanceChart.destroy();
+                }
+                
+                this.performanceChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: this.episodeData.map(d => d.episode),
+                        datasets: [{
+                            label: 'M (Mouse) Win Rate %',
+                            data: this.episodeData.map(d => d.catWinRate),
+                            borderColor: '#7FE9E1',
+                            backgroundColor: 'rgba(127, 233, 225, 0.1)',
+                            tension: 0.1
+                        }, {
+                            label: 'C (Cat) Win Rate %',
+                            data: this.episodeData.map(d => d.mouseWinRate),
+                            borderColor: '#4ECDC4',
+                            backgroundColor: 'rgba(78, 205, 196, 0.1)',
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                title: {
+                                    display: true,
+                                    text: 'Win Rate %',
+                                    color: '#7FE9E1'
+                                },
+                                ticks: {
+                                    color: '#7FE9E1'
+                                },
+                                grid: {
+                                    color: 'rgba(127, 233, 225, 0.2)'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Episode Number',
+                                    color: '#7FE9E1'
+                                },
+                                ticks: {
+                                    color: '#7FE9E1'
+                                },
+                                grid: {
+                                    color: 'rgba(127, 233, 225, 0.2)'
+                                }
+                            }
+                        },
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Performance Over Episodes',
+                                color: '#7FE9E1'
+                            },
+                            legend: {
+                                labels: {
+                                    color: '#7FE9E1'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            downloadTraining() {
+                const trainingData = {
+                    catQTable: this.catQTable,
+                    mouseQTable: this.mouseQTable,
+                    episodeData: this.episodeData,
+                    stats: {
+                        catWins: this.catWins,
+                        mouseWins: this.mouseWins,
+                        currentEpisode: this.currentEpisode,
+                        totalSteps: this.totalSteps
+                    },
+                    environmentData: {
+                        obstacles: this.originalObstacles || this.obstacles,
+                        trainingCatSpawn: this.trainingCatSpawn,
+                        trainingMouseSpawn: this.trainingMouseSpawn,
+                        gridWidth: this.gridWidth,
+                        gridHeight: this.gridHeight,
+                        characterMap: this.characterMap
+                    }
+                };
+                
+                const blob = new Blob([JSON.stringify(trainingData, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `lumon_training_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+            }
+
+            loadTraining() {
+                if (!this.uploadFile) {
+                    alert('Please select a file first');
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const trainingData = JSON.parse(e.target.result);
+                        
+                        this.catQTable = trainingData.catQTable || {};
+                        this.mouseQTable = trainingData.mouseQTable || {};
+                        this.episodeData = trainingData.episodeData || [];
+                        
+                        if (trainingData.stats) {
+                            this.catWins = trainingData.stats.catWins || 0;
+                            this.mouseWins = trainingData.stats.mouseWins || 0;
+                            this.currentEpisode = trainingData.stats.currentEpisode || 0;
+                            this.totalSteps = trainingData.stats.totalSteps || 0;
+                        }
+                        
+                        // Restore environment data if available
+                        if (trainingData.environmentData) {
+                            const envData = trainingData.environmentData;
+                            if (envData.obstacles) {
+                                this.obstacles = envData.obstacles;
+                                this.originalObstacles = JSON.parse(JSON.stringify(envData.obstacles));
+                            }
+                            if (envData.trainingCatSpawn) {
+                                this.trainingCatSpawn = envData.trainingCatSpawn;
+                            }
+                            if (envData.trainingMouseSpawn) {
+                                this.trainingMouseSpawn = envData.trainingMouseSpawn;
+                            }
+                            if (envData.characterMap) {
+                                this.characterMap = envData.characterMap;
+                                this.updateLegend();
+                                // Update character input fields
+                                document.getElementById('emptyChar').value = envData.characterMap.empty || '•';
+                                document.getElementById('catChar').value = envData.characterMap.cat || 'C';
+                                document.getElementById('mouseChar').value = envData.characterMap.mouse || 'M';
+                                document.getElementById('obstacleChar').value = envData.characterMap.obstacle || 'O';
+                                document.getElementById('unknownChar').value = envData.characterMap.unknown || '?';
+                                document.getElementById('errorChar').value = envData.characterMap.error || '!';
+                            }
+                        }
+                        
+                        this.updateStats();
+                        alert('Training data loaded successfully!');
+                        
+                    } catch (error) {
+                        alert('Error loading training data: ' + error.message);
+                    }
+                };
+                reader.readAsText(this.uploadFile);
+            }
+        }
+
+        // Initialize the application when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            // Temporarily disable animations on page load
+            document.body.classList.add('no-animations');
+            
+            const app = new LumonResearch();
+            app.initTextPressureTitle(); // Activate TextPressure effect
+            
+            // Re-enable animations after a short delay
+            setTimeout(() => {
+                document.body.classList.remove('no-animations');
+            }, 100);
+        });
+    </script>
+</body>
+</html>
