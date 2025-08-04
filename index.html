@@ -292,6 +292,11 @@
             -ms-overflow-style: none; /* IE/Edge */
         }
         
+        /* Hide settings section by default (shown only with Ctrl+M) */
+        .settings-section-hidden {
+            display: none !important;
+        }
+        
         /* Hide scrollbar for WebKit browsers */
         #settingsContent:not(.collapsed)::-webkit-scrollbar {
             display: none;
@@ -470,12 +475,12 @@
         }
 
         .param-item {
-            margin-bottom: 0.3rem;
+            margin-bottom: 0.4rem;
         }
         
         /* Compact settings sections */
         .settings-section-compact .param-item {
-            margin-bottom: 0.15rem;
+            margin-bottom: 0.2rem;
         }
         
         .settings-section-compact .param-item label {
@@ -490,8 +495,24 @@
         .param-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 0.3rem;
+            margin-bottom: 0.4rem;
             font-size: 0.85rem;
+        }
+        
+        /* Ensure consistent spacing between all parameter elements */
+        .param-group > .param-item:last-child,
+        .param-group > .param-row:last-child {
+            margin-bottom: 0;
+        }
+        
+        /* Ensure consistent spacing in analytics panels */
+        .analytics-panel .stat-row:last-child {
+            margin-bottom: 0;
+        }
+        
+        /* Ensure consistent spacing within bordered sections */
+        div[style*="border-top"] .stat-row:last-child {
+            margin-bottom: 0;
         }
 
         .param-label {
@@ -514,8 +535,7 @@
             text-transform: uppercase;
         }
 
-        .param-item input[type="number"],
-        .param-item input[type="range"] {
+        .param-item input[type="number"] {
             width: 100%;
             padding: 0.3rem;
             border: 1px solid #4B566A;
@@ -524,11 +544,25 @@
             background: #101827;
             color: #7FE9E1;
         }
+        
+        .param-item input[type="range"] {
+            width: 100%;
+            padding: 0.3rem;
+            border: none;
+            border-radius: 2px;
+            font-size: 0.7rem;
+            background: transparent;
+            color: #7FE9E1;
+        }
 
-        .param-item input[type="number"]:focus,
-        .param-item input[type="range"]:focus {
+        .param-item input[type="number"]:focus {
             outline: none;
             border-color: #7FE9E1;
+            box-shadow: 0 0 5px rgba(127, 233, 225, 0.3);
+        }
+        
+        .param-item input[type="range"]:focus {
+            outline: none;
             box-shadow: 0 0 5px rgba(127, 233, 225, 0.3);
         }
 
@@ -869,7 +903,7 @@
         .stat-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 0.3rem;
+            margin-bottom: 0.4rem;
             font-size: 0.85rem;
         }
 
@@ -950,7 +984,7 @@
                 <h3 class="section-title">Control Center</h3>
                 
                 <div class="param-group">
-                    <h4 style="font-size: 1.1rem; margin-bottom: 0.3rem; color: #7FE9E1; text-transform: uppercase;">Simulation Parameters</h4>
+                    <h4 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #7FE9E1; text-transform: uppercase;">Simulation Parameters</h4>
                     
                     <div class="param-row">
                         <span class="param-label">Episode Count:</span>
@@ -983,36 +1017,159 @@
                     <input type="number" id="obstacleCount" value="10" min="0" max="50" style="display: none;">
                     
                     <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #4B566A;">
-                        <h4 class="help-clickable" id="controlHelpTrigger" style="font-size: 0.9rem; margin-bottom: 0.5rem; color: #7FE9E1; text-transform: uppercase;">Learning Parameters</h4>
+                        <div class="collapsible-title collapsed" id="learningParametersToggle" style="font-size: 0.9rem; margin-bottom: 0.5rem; color: #7FE9E1; text-transform: uppercase;">Learning Parameters</div>
+                        <div class="collapsible-content collapsed" id="learningParametersContent">
                         
-                        <div class="param-item">
-                            <label for="learningRateSlider">Learning Rate</label>
-                            <input type="range" id="learningRateSlider" min="0.01" max="0.5" step="0.01" value="0.1">
-                            <div class="speed-display" id="learningRateDisplay">0.10</div>
+                        <div style="margin-bottom: 0.8rem;">
+                            <h5 style="font-size: 0.8rem; color: #7FE9E1; margin-bottom: 0.3rem; text-transform: uppercase;">Cat (Predator)</h5>
+                            
+                            <div class="param-item">
+                                <label for="catLearningRateSlider" id="catLearningRateLabel">Learning Rate: 0.11</label>
+                                <input type="range" id="catLearningRateSlider" min="0.01" max="0.5" step="0.01" value="0.11">
+                                <div class="speed-display" id="catLearningRateDisplay">0.11</div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <label for="catEpsilonSlider" id="catEpsilonLabel">Exploration Rate: 0.35</label>
+                                <input type="range" id="catEpsilonSlider" min="0.05" max="0.8" step="0.05" value="0.35">
+                                <div class="speed-display" id="catEpsilonDisplay">0.35</div>
+                            </div>
                         </div>
                         
-                        <div class="param-item">
-                            <label for="epsilonSlider">Exploration Rate</label>
-                            <input type="range" id="epsilonSlider" min="0.05" max="0.8" step="0.05" value="0.3">
-                            <div class="speed-display" id="epsilonDisplay">0.30</div>
+                        <div style="margin-bottom: 0.8rem;">
+                            <h5 style="font-size: 0.8rem; color: #7FE9E1; margin-bottom: 0.3rem; text-transform: uppercase;">Mouse (Prey)</h5>
+                            
+                            <div class="param-item">
+                                <label for="mouseLearningRateSlider" id="mouseLearningRateLabel">Learning Rate: 0.12</label>
+                                <input type="range" id="mouseLearningRateSlider" min="0.01" max="0.5" step="0.01" value="0.12">
+                                <div class="speed-display" id="mouseLearningRateDisplay">0.12</div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <label for="mouseEpsilonSlider" id="mouseEpsilonLabel">Exploration Rate: 0.25</label>
+                                <input type="range" id="mouseEpsilonSlider" min="0.05" max="0.8" step="0.05" value="0.25">
+                                <div class="speed-display" id="mouseEpsilonDisplay">0.25</div>
+                            </div>
                         </div>
                         
-                        <div class="param-item">
-                            <label for="discountFactorSlider">Discount Factor</label>
-                            <input type="range" id="discountFactorSlider" min="0.1" max="0.99" step="0.05" value="0.95">
-                            <div class="speed-display" id="discountFactorDisplay">0.95</div>
+                        <div style="border-top: 1px solid #4B566A; padding-top: 0.5rem;">
+                            <h5 style="font-size: 0.8rem; color: #7FE9E1; margin-bottom: 0.3rem; text-transform: uppercase;">Shared Parameters</h5>
+                            
+                            <div class="param-item">
+                                <label for="discountFactorSlider" id="discountFactorLabel">Discount Factor: 0.95</label>
+                                <input type="range" id="discountFactorSlider" min="0.1" max="0.99" step="0.05" value="0.95">
+                                <div class="speed-display" id="discountFactorDisplay">0.95</div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <label for="epsilonDecaySlider" id="epsilonDecayLabel">Exploration Decay: 0.995</label>
+                                <input type="range" id="epsilonDecaySlider" min="0.990" max="0.999" step="0.001" value="0.995">
+                                <div class="speed-display" id="epsilonDecayDisplay">0.995</div>
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 1rem;">
+                        <div class="collapsible-title collapsed" id="rewardsToggle" style="font-size: 0.9rem; margin-bottom: 0.5rem; color: #7FE9E1; text-transform: uppercase;">Reward Parameters</div>
+                        <div class="collapsible-content collapsed" id="rewardsContent">
+                        
+                        <div style="margin-bottom: 0.8rem;">
+                            <h5 style="font-size: 0.8rem; color: #7FE9E1; margin-bottom: 0.3rem; text-transform: uppercase;">Cat (Predator) Rewards</h5>
+                            
+                            <div class="param-item">
+                                <label for="catWinSlider" id="catWinLabel">Win Bonus: +500</label>
+                                <input type="range" id="catWinSlider" min="100" max="1000" step="50" value="500">
+                                <div class="speed-display" id="catWinDisplay">500</div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <label for="catHuntingSlider" id="catHuntingLabel">Hunting (Visible): +8</label>
+                                <input type="range" id="catHuntingSlider" min="1" max="20" step="1" value="8">
+                                <div class="speed-display" id="catHuntingDisplay">8</div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <label for="catExplorationSlider" id="catExplorationLabel">Exploration: +2</label>
+                                <input type="range" id="catExplorationSlider" min="0" max="10" step="0.5" value="2">
+                                <div class="speed-display" id="catExplorationDisplay">2</div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <label for="catRetreatingSlider" id="catRetreatingLabel">Retreating: -1</label>
+                                <input type="range" id="catRetreatingSlider" min="-10" max="0" step="0.1" value="-1">
+                                <div class="speed-display" id="catRetreatingDisplay">-1</div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <label for="catStandingStillSlider" id="catStandingStillLabel">Standing Still: -0.1</label>
+                                <input type="range" id="catStandingStillSlider" min="-1" max="0" step="0.01" value="-0.1">
+                                <div class="speed-display" id="catStandingStillDisplay">-0.1</div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <label for="catFailureSlider" id="catFailureLabel">Failure Penalty: -200</label>
+                                <input type="range" id="catFailureSlider" min="-500" max="0" step="10" value="-200">
+                                <div class="speed-display" id="catFailureDisplay">-200</div>
+                            </div>
                         </div>
                         
-                        <div class="param-item">
-                            <label for="epsilonDecaySlider">Exploration Decay</label>
-                            <input type="range" id="epsilonDecaySlider" min="0.990" max="0.999" step="0.001" value="0.995">
-                            <div class="speed-display" id="epsilonDecayDisplay">0.995</div>
+                        <div style="margin-bottom: 0.8rem;">
+                            <h5 style="font-size: 0.8rem; color: #7FE9E1; margin-bottom: 0.3rem; text-transform: uppercase;">Mouse (Prey) Rewards</h5>
+                            
+                            <div class="param-item">
+                                <label for="mouseSurvivalSlider" id="mouseSurvivalLabel">Survival Bonus: +500</label>
+                                <input type="range" id="mouseSurvivalSlider" min="100" max="1000" step="50" value="500">
+                                <div class="speed-display" id="mouseSurvivalDisplay">500</div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <label for="mouseCaughtSlider" id="mouseCaughtLabel">Caught Penalty: -500</label>
+                                <input type="range" id="mouseCaughtSlider" min="-1000" max="-100" step="50" value="-500">
+                                <div class="speed-display" id="mouseCaughtDisplay">-500</div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <label for="mouseStrategicEscapeSlider" id="mouseStrategicEscapeLabel">Strategic Escape: +4</label>
+                                <input type="range" id="mouseStrategicEscapeSlider" min="1" max="10" step="0.5" value="4">
+                                <div class="speed-display" id="mouseStrategicEscapeDisplay">4</div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <label for="mouseBlindEscapeSlider" id="mouseBlindEscapeLabel">Blind Escape: +2</label>
+                                <input type="range" id="mouseBlindEscapeSlider" min="0" max="10" step="0.5" value="2">
+                                <div class="speed-display" id="mouseBlindEscapeDisplay">2</div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <label for="mouseApproachingDangerSlider" id="mouseApproachingDangerLabel">Approaching Danger: -2</label>
+                                <input type="range" id="mouseApproachingDangerSlider" min="-10" max="0" step="0.1" value="-2">
+                                <div class="speed-display" id="mouseApproachingDangerDisplay">-2</div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <label for="mouseStandingStillVisibleSlider" id="mouseStandingStillVisibleLabel">Standing Still (Visible): -0.5</label>
+                                <input type="range" id="mouseStandingStillVisibleSlider" min="-2" max="0" step="0.1" value="-0.5">
+                                <div class="speed-display" id="mouseStandingStillVisibleDisplay">-0.5</div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <label for="mouseMovingTowardDangerSlider" id="mouseMovingTowardDangerLabel">Moving Toward Danger: -0.5</label>
+                                <input type="range" id="mouseMovingTowardDangerSlider" min="-2" max="0" step="0.1" value="-0.5">
+                                <div class="speed-display" id="mouseMovingTowardDangerDisplay">-0.5</div>
+                            </div>
+                        </div>
+                        
+                        <div style="font-style: italic; color: #7FE9E1; font-size: 0.7rem; text-align: center; margin-top: 0.5rem;">
+                            Real-time reward tuning for balanced competitive gameplay
+                        </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="param-group">
-                    <h4 style="font-size: 1.1rem; margin-bottom: 0.3rem; color: #7FE9E1; text-transform: uppercase;">Display Controls</h4>
+                    <div class="collapsible-title collapsed" id="displayControlsToggle" style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #7FE9E1; text-transform: uppercase;">Display Controls</div>
+                    <div class="collapsible-content collapsed" id="displayControlsContent">
                     
                     <div class="param-row">
                         <span class="param-label">Toggle Render:</span>
@@ -1024,16 +1181,29 @@
                         <input type="checkbox" id="toggleVision" checked style="margin: 0;">
                     </div>
                     
+                    <div class="param-row">
+                        <span class="param-label">Cone Vision:</span>
+                        <input type="checkbox" id="toggleConeVision" style="margin: 0;">
+                    </div>
+                    
+                    <div class="param-item">
+                        <label for="visionAngle">Vision Cone Angle</label>
+                        <input type="range" id="visionAngle" min="30" max="180" step="15" value="90">
+                        <div class="speed-display" id="visionAngleDisplay">90°</div>
+                    </div>
+                    
+                    
                     <div class="param-item">
                         <label for="simulationSpeed">Simulation Speed</label>
-                        <input type="range" id="simulationSpeed" min="1" max="2000" step="10" value="100">
+                        <input type="range" id="simulationSpeed" min="1" max="5000" step="10" value="100">
                         <div class="speed-display" id="speedDisplay">100ms</div>
+                    </div>
                     </div>
                 </div>
 
 
                 <div class="param-group">
-                    <h4 style="font-size: 1.1rem; margin-bottom: 0.3rem; color: #7FE9E1; text-transform: uppercase;">Actions</h4>
+                    <h4 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #7FE9E1; text-transform: uppercase;">Actions</h4>
                     
                     <div class="button-row">
                         <button class="btn btn-primary" id="startTraining">Start</button>
@@ -1056,39 +1226,51 @@
             <!-- Middle Column: Simulation View -->
             <div class="simulation-view">
                 <!-- Welcome Screen -->
-                <div id="welcomeScreen" style="width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; padding: 1rem; padding-top: 4rem; color: #7FE9E1; overflow-y: auto;">
-                    <div style="width: 100%; text-align: left; line-height: 1.4; font-size: 0.9rem;">
-                        <div style="margin-bottom: 1.5rem;">
-                            <h3 style="color: #7FE9E1; margin-bottom: 0.4rem; font-size: 1.1rem;">The Game</h3>
-                            <p style="margin-bottom: 0.5rem;">Watch AI agents learn through reinforcement learning! A <strong>Cat (C)</strong> hunts a <strong>Mouse (M)</strong> in a grid with <strong>Obstacles (O)</strong>. Both agents use Q-Learning to develop strategies - the cat learns to hunt efficiently while the mouse learns to escape.</p>
+                <div id="welcomeScreen" style="width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; padding: 0.8rem; padding-top: 4rem; color: #7FE9E1; overflow-y: auto;">
+                    <div style="width: 100%; text-align: left; line-height: 1.2; font-size: 0.75rem;">
+                        <div style="margin-bottom: 0.8rem;">
+                            <h3 style="color: #7FE9E1; margin-bottom: 0.2rem; font-size: 0.9rem;">The Game</h3>
+                            <p style="margin-bottom: 0.3rem;">Watch AI agents learn through reinforcement learning! A <strong>Cat (C)</strong> hunts a <strong>Mouse (M)</strong> in a grid with <strong>Obstacles (O)</strong>. Both agents use Q-Learning to develop strategies - the cat learns to hunt efficiently while the mouse learns to escape.</p>
                         </div>
                         
-                        <div style="margin-bottom: 1.5rem;">
-                            <h3 style="color: #7FE9E1; margin-bottom: 0.4rem; font-size: 1.1rem;">Control Center & Learning Parameters</h3>
-                            <p style="margin-bottom: 0.3rem;"><strong>Simulation Parameters:</strong> Episodes, steps, vision ranges, obstacles</p>
-                            <p style="margin-bottom: 0.3rem;"><strong><span class="help-clickable" id="welcomeHelpTrigger">Learning Parameters:</span></strong> Learning Rate, Exploration Rate, Discount Factor, Exploration Decay</p>
-                            <p style="margin-bottom: 0.5rem;"><strong>Real-time Tuning:</strong> Adjust parameters during training to see immediate effects</p>
+                        <div style="margin-bottom: 0.8rem;">
+                            <h3 style="color: #7FE9E1; margin-bottom: 0.2rem; font-size: 0.9rem;">Control Center & Learning Parameters</h3>
+                            <p style="margin-bottom: 0.2rem;"><strong>Simulation Parameters:</strong> Episodes, steps, vision ranges, obstacles</p>
+                            <p style="margin-bottom: 0.2rem;"><strong><span class="help-clickable" id="welcomeHelpTrigger">Learning Parameters:</span></strong> Learning Rate, Exploration Rate, Discount Factor, Exploration Decay</p>
+                            <p style="margin-bottom: 0.3rem;"><strong>Real-time Tuning:</strong> Adjust parameters during training to see immediate effects</p>
                         </div>
                         
-                        <div style="margin-bottom: 1.5rem;">
-                            <h3 style="color: #7FE9E1; margin-bottom: 0.4rem; font-size: 1.1rem;">Actions</h3>
-                            <p style="margin-bottom: 0.3rem;"><strong>Start:</strong> Begin training with current settings</p>
-                            <p style="margin-bottom: 0.3rem;"><strong>Stop:</strong> Pause training (can be resumed)</p>
-                            <p style="margin-bottom: 0.5rem;"><strong>Continue:</strong> Resume paused training</p>
+                        <div style="margin-bottom: 0.8rem;">
+                            <h3 style="color: #7FE9E1; margin-bottom: 0.2rem; font-size: 0.9rem;">Reward System</h3>
+                            <p style="margin-bottom: 0.3rem;">The AI agents learn through a balanced reward system optimized for competitive gameplay:</p>
+                            <div style="margin-left: 0.5rem;">
+                                <p style="margin-bottom: 0.15rem;"><strong>Cat (Predator):</strong></p>
+                                <p style="margin-bottom: 0.1rem; margin-left: 0.5rem; font-size: 0.7rem;" id="welcomeCatRewards">• Win: +500 | Failure: -200 | Hunting: +8 | Exploration: +2</p>
+                                <p style="margin-bottom: 0.15rem; margin-left: 0.5rem; font-size: 0.7rem;" id="welcomeCatPenalties">• Retreating: -1 | Standing still: -0.1</p>
+                                <p style="margin-bottom: 0.15rem;"><strong>Mouse (Prey):</strong></p>
+                                <p style="margin-bottom: 0.1rem; margin-left: 0.5rem; font-size: 0.7rem;" id="welcomeMouseRewards">• Survival: +500 | Caught: -500 | Strategic escape: +4 | Blind escape: +2</p>
+                                <p style="margin-bottom: 0.3rem; margin-left: 0.5rem; font-size: 0.7rem;" id="welcomeMousePenalties">• Approaching danger: -2 | Moving toward danger: -0.5 | Standing still (visible): -0.5</p>
+                            </div>
                         </div>
                         
-                        <div style="margin-bottom: 1.5rem;">
-                            <h3 style="color: #7FE9E1; margin-bottom: 0.4rem; font-size: 1.1rem;">Persistence</h3>
-                            <p style="margin-bottom: 0.3rem;"><strong>Download:</strong> Save complete AI state, analytics, and learned strategies</p>
-                            <p style="margin-bottom: 0.3rem;"><strong>Upload:</strong> Load previous training to continue where you left off</p>
-                            <p style="margin-bottom: 0.5rem;"><strong>Analytics Preserved:</strong> Full history and performance data maintained</p>
+                        <div style="margin-bottom: 0.8rem;">
+                            <h3 style="color: #7FE9E1; margin-bottom: 0.2rem; font-size: 0.9rem;">Actions</h3>
+                            <p style="margin-bottom: 0.2rem;"><strong>Start:</strong> Begin training with current settings</p>
+                            <p style="margin-bottom: 0.2rem;"><strong>Stop:</strong> Pause training (can be resumed)</p>
+                            <p style="margin-bottom: 0.3rem;"><strong>Continue:</strong> Resume paused training</p>
                         </div>
                         
-                        <div style="margin-top: 2rem; padding: 1rem; border: 2px solid #7FE9E1; border-radius: 8px; background: rgba(127, 233, 225, 0.1);">
-                            <h3 style="color: #7FE9E1; margin-bottom: 0.5rem; font-size: 1.1rem;">Ready to Begin?</h3>
-                            <p style="margin-bottom: 0.5rem; font-size: 0.95rem;">Configure your simulation parameters in the Control Center, then press <strong>Start</strong> to watch AI agents learn and evolve their strategies in real-time!</p>
-                            <p style="font-style: italic; color: #a0e7e0; font-size: 0.85rem;">The simulation will appear here once training begins.</p>
+                        <div style="margin-bottom: 0.8rem;">
+                            <h3 style="color: #7FE9E1; margin-bottom: 0.2rem; font-size: 0.9rem;">Training Persistence</h3>
+                            <p style="margin-bottom: 0.3rem;">Save and restore complete AI training sessions with full state preservation:</p>
+                            <div style="margin-left: 0.5rem;">
+                                <p style="margin-bottom: 0.15rem;"><strong>Download Training:</strong> Exports Q-tables, episode history, win statistics, environment configuration, and character mappings</p>
+                                <p style="margin-bottom: 0.15rem;"><strong>Upload Training:</strong> Automatically switches Start button to Continue and restores exact game environment</p>
+                                <p style="margin-bottom: 0.15rem;"><strong>Smart Button States:</strong> Interface adapts based on loaded training data</p>
+                                <p style="margin-bottom: 0.3rem;"><strong>Environment Preservation:</strong> Obstacle layouts, spawn points, and custom characters maintained</p>
+                            </div>
                         </div>
+                        
                     </div>
                 </div>
                 
@@ -1178,7 +1360,7 @@
                 </div>
                 
                 <!-- Settings -->
-                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #4B566A;">
+                <div class="settings-section-hidden" id="settingsSection" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #4B566A;">
                     <div class="collapsible-title collapsed" id="settingsToggle">Settings</div>
                     <div class="collapsible-content collapsed" id="settingsContent">
                         
@@ -1381,7 +1563,7 @@
                             </div>
                         
                         <!-- Layout Positioning -->
-                        <div style="margin-bottom: 1rem;">
+                        <div class="settings-section-hidden" style="margin-bottom: 1rem;">
                             <div class="collapsible-title collapsed" id="layoutToggle" style="font-size: 0.8rem; margin-bottom: 0.5rem; color: #7FE9E1; cursor: pointer;">LAYOUT POSITIONING</div>
                             <div class="collapsible-content collapsed" id="layoutContent">
                             
@@ -1422,7 +1604,7 @@
                         
                         
                         <!-- Typography Controls -->
-                        <div class="settings-section-compact" style="margin-bottom: 0.5rem;">
+                        <div class="settings-section-compact settings-section-hidden" style="margin-bottom: 0.5rem;">
                             <div class="collapsible-title collapsed" id="typographyToggle" style="font-size: 0.7rem; margin-bottom: 0.3rem; color: #7FE9E1; cursor: pointer;">TYPOGRAPHY</div>
                             <div class="collapsible-content collapsed" id="typographyContent">
                             
@@ -1507,7 +1689,7 @@
                         </div>
 
                         <!-- Character Customization -->
-                        <div class="settings-section-compact" style="margin-bottom: 0.5rem;">
+                        <div class="settings-section-compact settings-section-hidden" style="margin-bottom: 0.5rem;">
                             <div class="collapsible-title collapsed" id="charactersToggle" style="font-size: 0.7rem; margin-bottom: 0.3rem; color: #7FE9E1; cursor: pointer;">CHARACTERS</div>
                             <div class="collapsible-content collapsed" id="charactersContent">
                             
@@ -1557,6 +1739,13 @@
                             <div class="param-item">
                                 <div class="param-row">
                                     <span class="param-label">Mouse Vision Character:</span>
+                                    <span class="param-value inline-editable" data-type="char" data-char-type="unknown" data-callback="updateCharacterValue">?</span>
+                                </div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <div class="param-row">
+                                    <span class="param-label">Vision Collision Character:</span>
                                     <span class="param-value inline-editable" data-type="char" data-char-type="error" data-callback="updateCharacterValue">!</span>
                                 </div>
                             </div>
@@ -1600,16 +1789,53 @@
                 // Q-learning parameters
                 this.catQTable = {};
                 this.mouseQTable = {};
-                this.learningRate = 0.1;
+                
+                // Individual learning parameters for cat and mouse
+                this.catLearningRate = 0.11;
+                this.mouseLearningRate = 0.12;
+                this.catEpsilon = 0.35;
+                this.mouseEpsilon = 0.25;
+                this.catInitialEpsilon = 0.35;
+                this.mouseInitialEpsilon = 0.25;
+                
+                // Shared parameters
                 this.discountFactor = 0.95;
-                this.epsilon = 0.3; // Increased exploration
-                this.initialEpsilon = 0.3;
                 this.minEpsilon = 0.05;
                 this.epsilonDecay = 0.995;
+                
+                // Dynamic rotation for cone vision
+                this.catRotation = 0;   // Current cat facing direction
+                this.mouseRotation = 180; // Current mouse facing direction
+                
+                // User-configurable reward values
+                this.rewards = {
+                    catWin: 500,
+                    catHunting: 8,
+                    catExploration: 2,
+                    catRetreating: -1,
+                    catStandingStill: -0.1,
+                    catFailure: -200,
+                    mouseSurvival: 500,
+                    mouseCaught: -500,
+                    mouseStrategicEscape: 4,
+                    mouseBlindEscape: 2,
+                    mouseApproachingDanger: -2,
+                    mouseStandingStillVisible: -0.5,
+                    mouseMovingTowardDanger: -0.5
+                };
                 
                 this.initializeEventListeners();
                 this.initializeGrid();
                 this.updateSpeedDisplay();
+                this.updateVisionAngleDisplay();
+                this.updateCatRotationDisplay();
+                this.updateMouseRotationDisplay();
+                this.updateCatLearningRate();
+                this.updateCatEpsilon();
+                this.updateMouseLearningRate();
+                this.updateMouseEpsilon();
+                this.updateWelcomeRewardDisplay(); // Initialize welcome page reward display
+                this.updateButtonStates(); // Initialize button states
                 this.updateCRTEffect(); // Initialize CRT effect
             }
 
@@ -1620,6 +1846,38 @@
                 document.getElementById('downloadTraining').addEventListener('click', () => this.downloadTraining());
                 document.getElementById('uploadTrainingButton').addEventListener('click', () => this.triggerUpload());
                 document.getElementById('simulationSpeed').addEventListener('input', () => this.updateSpeedDisplay());
+                
+                // Cone Vision Controls  
+                document.getElementById('visionAngle').addEventListener('input', () => this.updateVisionAngleDisplay());
+                
+                // Individual Learning Parameter Controls
+                document.getElementById('catLearningRateSlider').addEventListener('input', () => this.updateCatLearningRate());
+                document.getElementById('catEpsilonSlider').addEventListener('input', () => this.updateCatEpsilon());
+                document.getElementById('mouseLearningRateSlider').addEventListener('input', () => this.updateMouseLearningRate());
+                document.getElementById('mouseEpsilonSlider').addEventListener('input', () => this.updateMouseEpsilon());
+                
+                // Reward Parameter Controls
+                document.getElementById('catWinSlider').addEventListener('input', () => this.updateRewardParameter('catWin'));
+                document.getElementById('catHuntingSlider').addEventListener('input', () => this.updateRewardParameter('catHunting'));
+                document.getElementById('catExplorationSlider').addEventListener('input', () => this.updateRewardParameter('catExploration'));
+                document.getElementById('catRetreatingSlider').addEventListener('input', () => this.updateRewardParameter('catRetreating'));
+                document.getElementById('catStandingStillSlider').addEventListener('input', () => this.updateRewardParameter('catStandingStill'));
+                document.getElementById('catFailureSlider').addEventListener('input', () => this.updateRewardParameter('catFailure'));
+                document.getElementById('mouseSurvivalSlider').addEventListener('input', () => this.updateRewardParameter('mouseSurvival'));
+                document.getElementById('mouseCaughtSlider').addEventListener('input', () => this.updateRewardParameter('mouseCaught'));
+                document.getElementById('mouseStrategicEscapeSlider').addEventListener('input', () => this.updateRewardParameter('mouseStrategicEscape'));
+                document.getElementById('mouseBlindEscapeSlider').addEventListener('input', () => this.updateRewardParameter('mouseBlindEscape'));
+                document.getElementById('mouseApproachingDangerSlider').addEventListener('input', () => this.updateRewardParameter('mouseApproachingDanger'));
+                document.getElementById('mouseStandingStillVisibleSlider').addEventListener('input', () => this.updateRewardParameter('mouseStandingStillVisible'));
+                document.getElementById('mouseMovingTowardDangerSlider').addEventListener('input', () => this.updateRewardParameter('mouseMovingTowardDanger'));
+                
+                // Keyboard shortcut for settings (Ctrl+M)
+                document.addEventListener('keydown', (e) => {
+                    if (e.ctrlKey && e.key === 'm') {
+                        e.preventDefault();
+                        this.toggleSettingsVisibility();
+                    }
+                });
                 document.getElementById('fontSize').addEventListener('input', () => this.updateFontSize());
                 document.getElementById('horizontalSpacing').addEventListener('input', () => this.updateHorizontalSpacing());
                 document.getElementById('verticalSpacing').addEventListener('input', () => this.updateVerticalSpacing());
@@ -1662,9 +1920,15 @@
                 
                 // File upload handling - automatically load when file is selected
                 document.getElementById('uploadTraining').addEventListener('change', (e) => {
+                    const uploadButton = document.getElementById('uploadTrainingButton');
                     if (e.target.files.length > 0) {
+                        uploadButton.textContent = 'Loading...';
                         this.uploadFile = e.target.files[0];
                         this.loadTraining(); // Automatically load the selected file
+                    } else {
+                        // Reset button if no file selected
+                        uploadButton.textContent = 'Upload';
+                        uploadButton.style.opacity = '1';
                     }
                 });
                 
@@ -1714,7 +1978,10 @@
                     { toggle: 'settingsToggle', content: 'settingsContent' },
                     { toggle: 'typographyToggle', content: 'typographyContent' },
                     { toggle: 'charactersToggle', content: 'charactersContent' },
-                    { toggle: 'layoutToggle', content: 'layoutContent' }
+                    { toggle: 'layoutToggle', content: 'layoutContent' },
+                    { toggle: 'learningParametersToggle', content: 'learningParametersContent' },
+                    { toggle: 'displayControlsToggle', content: 'displayControlsContent' },
+                    { toggle: 'rewardsToggle', content: 'rewardsContent' }
                 ];
 
                 // Initialize accordion sections (only one open at a time)
@@ -1891,7 +2158,7 @@
             initializeCharacterCustomization() {
                 // Store default character mappings
                 this.characterMap = {
-                    empty: '•',
+                    empty: '·',
                     cat: 'C',
                     mouse: 'M',
                     obstacle: 'O',
@@ -1916,7 +2183,7 @@
                 const legend = document.querySelector('.legend');
                 if (legend) {
                     // Create the new content matching the original legend format
-                    const newContent = `<span class="cat">${this.characterMap.cat || 'C'}: CAT</span> | <span class="mouse">${this.characterMap.mouse || 'M'}: MOUSE</span> | <span class="obstacle">${this.characterMap.obstacle || 'O'}: OBSTACLE</span> | <span class="cat-vision">${this.characterMap.unknown || '?'}: CAT VISION</span> | <span class="mouse-vision">${this.characterMap.error || '!'}: MOUSE VISION</span>`;
+                    const newContent = `<span class="cat">${this.characterMap.cat || 'C'}: CAT</span> | <span class="mouse">${this.characterMap.mouse || 'M'}: MOUSE</span> | <span class="obstacle">${this.characterMap.obstacle || 'O'}: OBSTACLE</span> | <span class="cat-vision">${this.characterMap.unknown || '?'}: VISION</span> | <span class="mouse-vision">${this.characterMap.error || '!'}: COLLISION</span>`;
                     
                     // Update the content and preserve scramble structure
                     legend.innerHTML = newContent.trim();
@@ -2148,7 +2415,7 @@
                 const helpPopup = document.getElementById('helpPopup');
                 const helpCloseBtn = document.getElementById('helpCloseBtn');
                 const welcomeHelpTrigger = document.getElementById('welcomeHelpTrigger');
-                const controlHelpTrigger = document.getElementById('controlHelpTrigger');
+                const controlHelpTrigger = null; // Removed help functionality from learning parameters
                 
                 const showHelp = () => {
                     helpOverlay.style.display = 'block';
@@ -2218,9 +2485,9 @@
             
             handleScrambleEffect(e, element) {
                 const chars = element.querySelectorAll('.scramble-char');
-                const radius = 100;
+                const radius = 300;
                 const scrambleChars = '.:';
-                const duration = 1200;
+                const duration = 5000;
                 
                 chars.forEach(char => {
                     const rect = char.getBoundingClientRect();
@@ -2248,7 +2515,7 @@
                 charElement.isScrambling = true;
                 let scrambleCount = 0;
                 const maxScrambles = scrambleLength;
-                const intervalDelay = 80; // Fixed delay instead of calculated
+                const intervalDelay = 80; // More fluid animation speed
                 
                 const scrambleInterval = setInterval(() => {
                     if (scrambleCount < maxScrambles) {
@@ -2261,6 +2528,31 @@
                         clearInterval(scrambleInterval);
                     }
                 }, intervalDelay);
+            }
+            
+            initHeaderScrambleEffect() {
+                const header = document.querySelector('.header h1');
+                if (!header) return;
+                
+                const text = header.textContent;
+                let charHTML = '';
+                
+                for (let i = 0; i < text.length; i++) {
+                    const char = text[i];
+                    // Don't wrap spaces in spans to preserve natural spacing
+                    if (char === ' ') {
+                        charHTML += char;
+                    } else {
+                        charHTML += `<span class="scramble-char" data-original="${char}">${char}</span>`;
+                    }
+                }
+                
+                header.innerHTML = charHTML;
+                
+                // Add scramble effect on mouse move
+                header.addEventListener('pointermove', (e) => {
+                    this.handleScrambleEffect(e, header);
+                });
             }
             
             initializeInlineEditing() {
@@ -2488,6 +2780,115 @@
                 
                 const speed = parseInt(speedInput.value);
                 display.textContent = speed + 'ms';
+            }
+            
+            updateVisionAngleDisplay() {
+                const angle = document.getElementById('visionAngle').value;
+                const display = document.getElementById('visionAngleDisplay');
+                if (display) display.textContent = `${angle}°`;
+            }
+            
+            updateCatRotationDisplay() {
+                const rotation = parseInt(document.getElementById('catRotation').value);
+                const display = document.getElementById('catRotationDisplay');
+                const directions = {
+                    0: "Right", 45: "Down-Right", 90: "Down", 135: "Down-Left",
+                    180: "Left", 225: "Up-Left", 270: "Up", 315: "Up-Right", 360: "Right"
+                };
+                if (display) display.textContent = `${rotation}° (${directions[rotation] || "Custom"})`;
+                
+                // Update internal rotation when user changes slider
+                this.catRotation = rotation;
+            }
+            
+            updateMouseRotationDisplay() {
+                const rotation = parseInt(document.getElementById('mouseRotation').value);
+                const display = document.getElementById('mouseRotationDisplay');
+                const directions = {
+                    0: "Right", 45: "Down-Right", 90: "Down", 135: "Down-Left",
+                    180: "Left", 225: "Up-Left", 270: "Up", 315: "Up-Right", 360: "Right"
+                };
+                if (display) display.textContent = `${rotation}° (${directions[rotation] || "Custom"})`;
+                
+                // Update internal rotation when user changes slider
+                this.mouseRotation = rotation;
+            }
+            
+            updateCatLearningRate() {
+                const slider = document.getElementById('catLearningRateSlider');
+                const display = document.getElementById('catLearningRateDisplay');
+                if (slider && display) {
+                    const value = parseFloat(slider.value);
+                    display.textContent = value.toFixed(2);
+                    this.catLearningRate = value;
+                }
+            }
+            
+            updateCatEpsilon() {
+                const slider = document.getElementById('catEpsilonSlider');
+                const display = document.getElementById('catEpsilonDisplay');
+                if (slider && display) {
+                    const value = parseFloat(slider.value);
+                    display.textContent = value.toFixed(2);
+                    this.catEpsilon = value;
+                    this.catInitialEpsilon = value;
+                }
+            }
+            
+            updateMouseLearningRate() {
+                const slider = document.getElementById('mouseLearningRateSlider');
+                const display = document.getElementById('mouseLearningRateDisplay');
+                if (slider && display) {
+                    const value = parseFloat(slider.value);
+                    display.textContent = value.toFixed(2);
+                    this.mouseLearningRate = value;
+                }
+            }
+            
+            updateMouseEpsilon() {
+                const slider = document.getElementById('mouseEpsilonSlider');
+                const display = document.getElementById('mouseEpsilonDisplay');
+                if (slider && display) {
+                    const value = parseFloat(slider.value);
+                    display.textContent = value.toFixed(2);
+                    this.mouseEpsilon = value;
+                    this.mouseInitialEpsilon = value;
+                }
+            }
+            
+            updateRewardParameter(paramName) {
+                const slider = document.getElementById(paramName + 'Slider');
+                const display = document.getElementById(paramName + 'Display');
+                if (slider && display) {
+                    const value = parseFloat(slider.value);
+                    display.textContent = value;
+                    this.rewards[paramName] = value;
+                    this.updateWelcomeRewardDisplay();
+                }
+            }
+            
+            updateWelcomeRewardDisplay() {
+                // Update Cat rewards in welcome page
+                const welcomeCatRewards = document.getElementById('welcomeCatRewards');
+                if (welcomeCatRewards) {
+                    welcomeCatRewards.textContent = `• Win: +${this.rewards.catWin} | Failure: ${this.rewards.catFailure} | Hunting: +${this.rewards.catHunting} | Exploration: +${this.rewards.catExploration}`;
+                }
+                
+                const welcomeCatPenalties = document.getElementById('welcomeCatPenalties');
+                if (welcomeCatPenalties) {
+                    welcomeCatPenalties.textContent = `• Retreating: ${this.rewards.catRetreating} | Standing still: ${this.rewards.catStandingStill}`;
+                }
+                
+                // Update Mouse rewards in welcome page
+                const welcomeMouseRewards = document.getElementById('welcomeMouseRewards');
+                if (welcomeMouseRewards) {
+                    welcomeMouseRewards.textContent = `• Survival: +${this.rewards.mouseSurvival} | Caught: ${this.rewards.mouseCaught} | Strategic escape: +${this.rewards.mouseStrategicEscape} | Blind escape: +${this.rewards.mouseBlindEscape}`;
+                }
+                
+                const welcomeMousePenalties = document.getElementById('welcomeMousePenalties');
+                if (welcomeMousePenalties) {
+                    welcomeMousePenalties.textContent = `• Approaching danger: ${this.rewards.mouseApproachingDanger} | Moving toward danger: ${this.rewards.mouseMovingTowardDanger} | Standing still (visible): ${this.rewards.mouseStandingStillVisible}`;
+                }
             }
 
             updateFontSize() {
@@ -2885,7 +3286,7 @@
             }
 
             initializeGrid() {
-                this.grid = Array(this.gridHeight).fill().map(() => Array(this.gridWidth).fill(this.characterMap?.empty || '•'));
+                this.grid = Array(this.gridHeight).fill().map(() => Array(this.gridWidth).fill(this.characterMap?.empty || '·'));
                 this.placeAgentsAndObstacles();
                 this.renderGrid();
             }
@@ -2937,7 +3338,7 @@
 
             placeAgentsAndObstacles() {
                 // Clear previous positions
-                this.grid = Array(this.gridHeight).fill().map(() => Array(this.gridWidth).fill(this.characterMap?.empty || '•'));
+                this.grid = Array(this.gridHeight).fill().map(() => Array(this.gridWidth).fill(this.characterMap?.empty || '·'));
                 
                 // Reset obstacles to their original positions
                 this.obstacles = JSON.parse(JSON.stringify(this.originalObstacles));
@@ -2975,7 +3376,7 @@
                 // Clear grid
                 for (let y = 0; y < this.gridHeight; y++) {
                     for (let x = 0; x < this.gridWidth; x++) {
-                        this.grid[y][x] = this.characterMap?.empty || '•';
+                        this.grid[y][x] = this.characterMap?.empty || '·';
                     }
                 }
                 
@@ -2986,7 +3387,7 @@
                 
                 // Place obstacles
                 this.obstacles.forEach(obs => {
-                    if (this.grid[obs.y][obs.x] === (this.characterMap?.empty || '•')) {
+                    if (this.grid[obs.y][obs.x] === (this.characterMap?.empty || '·')) {
                         this.grid[obs.y][obs.x] = this.characterMap?.obstacle || 'O';
                     }
                 });
@@ -3000,42 +3401,104 @@
                 const catVision = parseInt(document.getElementById('predatorVision').value);
                 const mouseVision = parseInt(document.getElementById('preyVision').value);
                 
-                // Add cat vision
-                const catVisibleCells = this.getVisibleCells(this.catPos, catVision);
+                // Get vision cells for both agents
+                const catVisibleCells = this.getVisibleCells(this.catPos, catVision, 'cat');
+                const mouseVisibleCells = this.getVisibleCells(this.mousePos, mouseVision, 'mouse');
+                
+                // Create sets for efficient lookup
+                const catVisionSet = new Set(catVisibleCells.map(cell => `${cell.x},${cell.y}`));
+                const mouseVisionSet = new Set(mouseVisibleCells.map(cell => `${cell.x},${cell.y}`));
+                
+                // Add cat vision (use ? for both cat and mouse vision)
                 catVisibleCells.forEach(cell => {
-                    if (this.grid[cell.y][cell.x] === (this.characterMap?.empty || '•')) {
+                    if (this.grid[cell.y][cell.x] === (this.characterMap?.empty || '·')) {
                         this.grid[cell.y][cell.x] = this.characterMap?.unknown || '?';
                     }
                 });
                 
-                // Add mouse vision
-                const mouseVisibleCells = this.getVisibleCells(this.mousePos, mouseVision);
+                // Add mouse vision (also use ?, but check for overlap)
                 mouseVisibleCells.forEach(cell => {
-                    if (this.grid[cell.y][cell.x] === (this.characterMap?.empty || '•')) {
+                    const cellKey = `${cell.x},${cell.y}`;
+                    if (this.grid[cell.y][cell.x] === (this.characterMap?.empty || '·')) {
+                        this.grid[cell.y][cell.x] = this.characterMap?.unknown || '?';
+                    }
+                    // If this cell is visible to both agents, use collision symbol
+                    else if (this.grid[cell.y][cell.x] === (this.characterMap?.unknown || '?') && catVisionSet.has(cellKey)) {
                         this.grid[cell.y][cell.x] = this.characterMap?.error || '!';
                     }
                 });
             }
 
-            getVisibleCells(pos, range) {
+            getVisibleCells(pos, range, agentType = null) {
                 const visible = [];
+                const useConeVision = document.getElementById('toggleConeVision')?.checked || false;
                 
-                // Use circular vision instead of square
-                for (let dx = -range; dx <= range; dx++) {
-                    for (let dy = -range; dy <= range; dy++) {
-                        if (dx === 0 && dy === 0) continue;
-                        
-                        const distance = Math.sqrt(dx * dx + dy * dy);
-                        if (distance > range) continue; // Skip if outside circular range
-                        
-                        const targetX = pos.x + dx;
-                        const targetY = pos.y + dy;
-                        
-                        if (targetX >= 0 && targetX < this.gridWidth && 
-                            targetY >= 0 && targetY < this.gridHeight) {
+                if (!useConeVision) {
+                    // Use circular vision (original behavior)
+                    for (let dx = -range; dx <= range; dx++) {
+                        for (let dy = -range; dy <= range; dy++) {
+                            if (dx === 0 && dy === 0) continue;
                             
-                            if (this.hasLineOfSight(pos, { x: targetX, y: targetY })) {
-                                visible.push({ x: targetX, y: targetY });
+                            const distance = Math.sqrt(dx * dx + dy * dy);
+                            if (distance > range) continue; // Skip if outside circular range
+                            
+                            const targetX = pos.x + dx;
+                            const targetY = pos.y + dy;
+                            
+                            if (targetX >= 0 && targetX < this.gridWidth && 
+                                targetY >= 0 && targetY < this.gridHeight) {
+                                
+                                if (this.hasLineOfSight(pos, { x: targetX, y: targetY })) {
+                                    visible.push({ x: targetX, y: targetY });
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    // Use cone vision
+                    const visionAngle = parseInt(document.getElementById('visionAngle')?.value || 90);
+                    let rotation = 0;
+                    
+                    // Get rotation based on agent type (use dynamic rotation)
+                    if (agentType === 'cat') {
+                        rotation = this.catRotation;
+                    } else if (agentType === 'mouse') {
+                        rotation = this.mouseRotation;
+                    }
+                    
+                    // Convert rotation to radians
+                    const rotationRad = (rotation * Math.PI) / 180;
+                    const halfAngleRad = (visionAngle * Math.PI) / 360; // Half of cone angle
+                    
+                    for (let dx = -range; dx <= range; dx++) {
+                        for (let dy = -range; dy <= range; dy++) {
+                            if (dx === 0 && dy === 0) continue;
+                            
+                            const distance = Math.sqrt(dx * dx + dy * dy);
+                            if (distance > range) continue; // Skip if outside circular range
+                            
+                            // Calculate angle from agent position to target cell
+                            const targetAngle = Math.atan2(dy, dx);
+                            
+                            // Calculate angle difference from rotation direction
+                            let angleDiff = targetAngle - rotationRad;
+                            
+                            // Normalize angle difference to [-π, π]
+                            while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
+                            while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
+                            
+                            // Check if within cone angle
+                            if (Math.abs(angleDiff) <= halfAngleRad) {
+                                const targetX = pos.x + dx;
+                                const targetY = pos.y + dy;
+                                
+                                if (targetX >= 0 && targetX < this.gridWidth && 
+                                    targetY >= 0 && targetY < this.gridHeight) {
+                                    
+                                    if (this.hasLineOfSight(pos, { x: targetX, y: targetY })) {
+                                        visible.push({ x: targetX, y: targetY });
+                                    }
+                                }
                             }
                         }
                     }
@@ -3102,7 +3565,10 @@
                 const actions = ['up', 'down', 'left', 'right'];
                 const qTable = agent === 'cat' ? this.catQTable : this.mouseQTable;
                 
-                if (Math.random() < this.epsilon || !qTable[state]) {
+                const epsilon = agent === 'cat' ? this.catEpsilon : this.mouseEpsilon;
+                if (Math.random() < epsilon || !qTable[state]) {
+                    // Random exploration: choose random movement and rotation
+                    this.chooseRandomRotation(agent);
                     return actions[Math.floor(Math.random() * actions.length)];
                 }
                 
@@ -3120,10 +3586,83 @@
                     }
                 }
                 
+                // When exploiting, choose strategic rotation
+                this.chooseStrategicRotation(agent, state);
+                
                 // Randomly select from best actions to break ties
                 const bestAction = bestActions[Math.floor(Math.random() * bestActions.length)];
                 
                 return bestAction;
+            }
+            
+            chooseRandomRotation(agent) {
+                // Only rotate if cone vision is enabled
+                if (!document.getElementById('toggleConeVision')?.checked) return;
+                
+                const rotations = [0, 45, 90, 135, 180, 225, 270, 315];
+                const randomRotation = rotations[Math.floor(Math.random() * rotations.length)];
+                
+                if (agent === 'cat') {
+                    this.catRotation = randomRotation;
+                } else if (agent === 'mouse') {
+                    this.mouseRotation = randomRotation;
+                }
+                
+                // Update the UI sliders to reflect the new rotation
+                this.updateRotationSliders();
+            }
+            
+            chooseStrategicRotation(agent, state) {
+                // Only rotate if cone vision is enabled
+                if (!document.getElementById('toggleConeVision')?.checked) return;
+                
+                // Strategic rotation: face towards target
+                const agentPos = agent === 'cat' ? this.catPos : this.mousePos;
+                const targetPos = agent === 'cat' ? this.mousePos : this.catPos;
+                
+                const dx = targetPos.x - agentPos.x;
+                const dy = targetPos.y - agentPos.y;
+                
+                // Calculate optimal facing direction
+                let optimalRotation = 0;
+                if (dx > 0 && dy === 0) optimalRotation = 0;    // Right
+                else if (dx > 0 && dy > 0) optimalRotation = 45;  // Down-Right
+                else if (dx === 0 && dy > 0) optimalRotation = 90;  // Down
+                else if (dx < 0 && dy > 0) optimalRotation = 135; // Down-Left
+                else if (dx < 0 && dy === 0) optimalRotation = 180; // Left
+                else if (dx < 0 && dy < 0) optimalRotation = 225; // Up-Left
+                else if (dx === 0 && dy < 0) optimalRotation = 270; // Up
+                else if (dx > 0 && dy < 0) optimalRotation = 315; // Up-Right
+                
+                // For mouse, sometimes choose opposite direction (evasion)
+                if (agent === 'mouse' && Math.random() < 0.3) {
+                    optimalRotation = (optimalRotation + 180) % 360;
+                }
+                
+                if (agent === 'cat') {
+                    this.catRotation = optimalRotation;
+                } else if (agent === 'mouse') {
+                    this.mouseRotation = optimalRotation;
+                }
+                
+                // Update the UI sliders to reflect the new rotation
+                this.updateRotationSliders();
+            }
+            
+            updateRotationSliders() {
+                // Rotation sliders have been removed - rotations are now fully AI-controlled
+                // This method is kept for compatibility but no longer updates UI elements
+            }
+            
+            openDisplayControls() {
+                const toggle = document.getElementById('displayControlsToggle');
+                const content = document.getElementById('displayControlsContent');
+                
+                if (toggle && content) {
+                    toggle.classList.remove('collapsed');
+                    content.classList.remove('collapsed');
+                    toggle.textContent = toggle.textContent.replace('▶', '▼');
+                }
             }
 
             updateQTable(agent, state, action, reward, nextState) {
@@ -3139,7 +3678,8 @@
                 
                 const currentQ = qTable[state][action];
                 const maxNextQ = Math.max(...Object.values(qTable[nextState]));
-                const newQ = currentQ + this.learningRate * (reward + this.discountFactor * maxNextQ - currentQ);
+                const learningRate = agent === 'cat' ? this.catLearningRate : this.mouseLearningRate;
+                const newQ = currentQ + learningRate * (reward + this.discountFactor * maxNextQ - currentQ);
                 
                 qTable[state][action] = newQ;
             }
@@ -3183,32 +3723,34 @@
 
             calculateReward(agent, oldPos, newPos, targetPos, caught) {
                 if (caught) {
-                    return agent === 'cat' ? 100 : -100;
+                    return agent === 'cat' ? this.rewards.catWin : this.rewards.mouseCaught;
                 }
                 
                 const oldDistance = Math.abs(oldPos.x - targetPos.x) + Math.abs(oldPos.y - targetPos.y);
                 const newDistance = Math.abs(newPos.x - targetPos.x) + Math.abs(newPos.y - targetPos.y);
                 
                 if (agent === 'cat') {
-                    const catCanSee = this.getVisibleCells(oldPos, parseInt(document.getElementById('predatorVision').value))
+                    const catCanSee = this.getVisibleCells(oldPos, parseInt(document.getElementById('predatorVision').value), 'cat')
                         .some(cell => cell.x === targetPos.x && cell.y === targetPos.y);
                     
-                    // Balanced cat reward system
-                    if (catCanSee && newDistance < oldDistance) return 5; // Can see and moving closer
-                    if (!catCanSee && newDistance < oldDistance) return 1; // Can't see but moving closer (exploration reward)
-                    if (newDistance === oldDistance) return 0; // Neutral for same distance
-                    if (catCanSee && newDistance > oldDistance) return -0.5; // Can see but moving away
-                    if (!catCanSee && newDistance > oldDistance) return -0.2; // Can't see and moving away
+                    // User-configurable cat reward system
+                    if (catCanSee && newDistance < oldDistance) return this.rewards.catHunting;
+                    if (!catCanSee && newDistance < oldDistance) return this.rewards.catExploration;
+                    if (newDistance === oldDistance) return this.rewards.catStandingStill;
+                    if (catCanSee && newDistance > oldDistance) return this.rewards.catRetreating;
+                    if (!catCanSee && newDistance > oldDistance) return this.rewards.catStandingStill; // Light penalty for moving away blindly
                 } else {
-                    const mouseCanSee = this.getVisibleCells(oldPos, parseInt(document.getElementById('preyVision').value))
+                    const mouseCanSee = this.getVisibleCells(oldPos, parseInt(document.getElementById('preyVision').value), 'mouse')
                         .some(cell => cell.x === targetPos.x && cell.y === targetPos.y);
                     
-                    // Balanced mouse reward system  
-                    if (!mouseCanSee && newDistance > oldDistance) return 5; // Can't see cat and moving away
-                    if (mouseCanSee && newDistance > oldDistance) return 3; // Can see cat and escaping
-                    if (newDistance === oldDistance) return 0; // Neutral for same distance
-                    if (!mouseCanSee && newDistance < oldDistance) return -0.2; // Can't see but moving closer
-                    if (mouseCanSee && newDistance < oldDistance) return -1; // Can see cat but moving closer (bad)
+                    // User-configurable mouse reward system
+                    if (!mouseCanSee && newDistance > oldDistance) return this.rewards.mouseBlindEscape;
+                    if (mouseCanSee && newDistance > oldDistance) return this.rewards.mouseStrategicEscape;
+                    if (newDistance === oldDistance) {
+                        return mouseCanSee ? this.rewards.mouseStandingStillVisible : 0; // Only penalize standing still if cat is visible
+                    }
+                    if (!mouseCanSee && newDistance < oldDistance) return this.rewards.mouseMovingTowardDanger;
+                    if (mouseCanSee && newDistance < oldDistance) return this.rewards.mouseApproachingDanger;
                 }
                 
                 return 0;
@@ -3284,7 +3826,17 @@
                 }
                 
                 // If we reached max steps without catching, mouse wins
-                if (episodeSteps >= maxSteps && this.catPos.x !== this.mousePos.x || this.catPos.y !== this.mousePos.y) {
+                if (episodeSteps >= maxSteps && (this.catPos.x !== this.mousePos.x || this.catPos.y !== this.mousePos.y)) {
+                    // Give mouse big survival reward
+                    const finalMouseState = this.getState(this.mousePos, this.catPos);
+                    this.updateQTable('mouse', finalMouseState, 'survival', this.rewards.mouseSurvival, finalMouseState);
+                    this.currentMouseScore += this.rewards.mouseSurvival;
+                    
+                    // Penalize cat for not catching mouse
+                    const finalCatState = this.getState(this.catPos, this.mousePos);
+                    this.updateQTable('cat', finalCatState, 'failure', this.rewards.catFailure, finalCatState);
+                    this.currentCatScore += this.rewards.catFailure;
+                    
                     this.mouseWins++;
                 }
                 
@@ -3304,6 +3856,8 @@
             async startTraining() {
                 this.isTraining = true;
                 this.isPaused = false;
+                this.updateButtonStates(); // Update buttons when training starts
+                this.openDisplayControls(); // Always open display controls when training starts
                 
                 // Only reset stats if starting fresh (no existing Q-tables or episode data)
                 const isStartingFresh = Object.keys(this.catQTable).length === 0 && 
@@ -3319,7 +3873,8 @@
                     this.episodeData = [];
                     
                     // Reset epsilon for new training session
-                    this.epsilon = this.initialEpsilon;
+                    this.catEpsilon = this.catInitialEpsilon;
+                    this.mouseEpsilon = this.mouseInitialEpsilon;
                 }
                 
                 // Establish consistent spawn points for this training session
@@ -3346,8 +3901,11 @@
                     this.updateStats();
                     
                     // Apply epsilon decay for reduced exploration over time
-                    if (this.epsilon > this.minEpsilon) {
-                        this.epsilon = Math.max(this.minEpsilon, this.epsilon * this.epsilonDecay);
+                    if (this.catEpsilon > this.minEpsilon) {
+                        this.catEpsilon = Math.max(this.minEpsilon, this.catEpsilon * this.epsilonDecay);
+                    }
+                    if (this.mouseEpsilon > this.minEpsilon) {
+                        this.mouseEpsilon = Math.max(this.minEpsilon, this.mouseEpsilon * this.epsilonDecay);
                     }
                 }
                 
@@ -3364,6 +3922,7 @@
                 this.isPaused = true;
                 document.getElementById('trainingStatus').textContent = 'Stopped';
                 this.lockParameters(false);
+                this.updateButtonStates(); // Update buttons when training stops
                 
                 // Show welcome screen when training stops
                 document.getElementById('gridView').style.display = 'none';
@@ -3524,7 +4083,55 @@
             }
 
             triggerUpload() {
+                const uploadButton = document.getElementById('uploadTrainingButton');
+                uploadButton.textContent = 'Selecting...';
+                uploadButton.style.opacity = '0.7';
                 document.getElementById('uploadTraining').click();
+            }
+            
+            updateButtonStates() {
+                const startButton = document.getElementById('startTraining');
+                const stopButton = document.getElementById('stopTraining');
+                const continueButton = document.getElementById('continueTraining');
+                
+                // Check if there's existing training data
+                const hasExistingData = Object.keys(this.catQTable).length > 0 || 
+                                      Object.keys(this.mouseQTable).length > 0 || 
+                                      this.currentEpisode > 0;
+                
+                if (this.isTraining) {
+                    // During training: hide Start/Continue, show Stop
+                    startButton.style.display = 'none';
+                    continueButton.style.display = 'none';
+                    stopButton.style.display = 'inline-block';
+                } else if (hasExistingData) {
+                    // Has data but not training: show Continue, hide Start/Stop
+                    startButton.style.display = 'none';
+                    stopButton.style.display = 'none';
+                    continueButton.style.display = 'inline-block';
+                    continueButton.textContent = 'Continue';
+                } else {
+                    // No data and not training: show Start, hide Continue/Stop
+                    startButton.style.display = 'inline-block';
+                    stopButton.style.display = 'none';
+                    continueButton.style.display = 'none';
+                    startButton.textContent = 'Start';
+                }
+            }
+            
+            toggleSettingsVisibility() {
+                // Toggle all settings sections by their container elements
+                const settingsSection = document.getElementById('settingsSection');
+                const typographySection = document.querySelector('[id="typographyToggle"]').parentElement;
+                const charactersSection = document.querySelector('[id="charactersToggle"]').parentElement;
+                const layoutSection = document.querySelector('[id="layoutToggle"]').parentElement;
+                
+                const sections = [settingsSection, typographySection, charactersSection, layoutSection];
+                sections.forEach(section => {
+                    if (section) {
+                        section.classList.toggle('settings-section-hidden');
+                    }
+                });
             }
 
             loadTraining() {
@@ -3565,20 +4172,39 @@
                             if (envData.characterMap) {
                                 this.characterMap = envData.characterMap;
                                 this.updateLegend();
-                                // Update character input fields
-                                document.getElementById('emptyChar').value = envData.characterMap.empty || '•';
-                                document.getElementById('catChar').value = envData.characterMap.cat || 'C';
-                                document.getElementById('mouseChar').value = envData.characterMap.mouse || 'M';
-                                document.getElementById('obstacleChar').value = envData.characterMap.obstacle || 'O';
-                                document.getElementById('unknownChar').value = envData.characterMap.unknown || '?';
-                                document.getElementById('errorChar').value = envData.characterMap.error || '!';
+                                // Update character input fields with null checks
+                                const emptyCharInput = document.getElementById('emptyChar');
+                                const catCharInput = document.getElementById('catChar');
+                                const mouseCharInput = document.getElementById('mouseChar');
+                                const obstacleCharInput = document.getElementById('obstacleChar');
+                                const unknownCharInput = document.getElementById('unknownChar');
+                                const errorCharInput = document.getElementById('errorChar');
+                                
+                                if (emptyCharInput) emptyCharInput.value = envData.characterMap.empty || '·';
+                                if (catCharInput) catCharInput.value = envData.characterMap.cat || 'C';
+                                if (mouseCharInput) mouseCharInput.value = envData.characterMap.mouse || 'M';
+                                if (obstacleCharInput) obstacleCharInput.value = envData.characterMap.obstacle || 'O';
+                                if (unknownCharInput) unknownCharInput.value = envData.characterMap.unknown || '?';
+                                if (errorCharInput) errorCharInput.value = envData.characterMap.error || '!';
                             }
                         }
                         
                         this.updateStats();
+                        this.updateButtonStates(); // Update button states after loading
+                        
+                        // Reset upload button
+                        const uploadButton = document.getElementById('uploadTrainingButton');
+                        uploadButton.textContent = 'Upload';
+                        uploadButton.style.opacity = '1';
+                        
                         alert('Training data loaded successfully!');
                         
                     } catch (error) {
+                        // Reset upload button on error
+                        const uploadButton = document.getElementById('uploadTrainingButton');
+                        uploadButton.textContent = 'Upload';
+                        uploadButton.style.opacity = '1';
+                        
                         alert('Error loading training data: ' + error.message);
                     }
                 };
@@ -3592,7 +4218,7 @@
             document.body.classList.add('no-animations');
             
             const app = new LumonResearch();
-            app.initTextPressureTitle(); // Activate TextPressure effect
+            app.initHeaderScrambleEffect(); // Initialize header scramble effect
             
             // Re-enable animations after a short delay
             setTimeout(() => {
@@ -3604,31 +4230,37 @@
     <!-- Help Popup -->
     <div class="help-popup-overlay" id="helpOverlay"></div>
     <div class="help-popup" id="helpPopup">
-        <button class="help-close-btn" id="helpCloseBtn">&times;</button>
-        <h3>Learning Parameters Explained</h3>
-        
-        <div class="help-param">
-            <h4>Learning Rate</h4>
-            <div class="param-range">Range: 0.01 - 0.5 (Default: 0.1)</div>
-            <p>Controls how much the AI agents learn from each experience. Higher values make agents adapt quickly to new situations but may cause instability. Lower values create stable, gradual learning but slower adaptation.</p>
-        </div>
-        
-        <div class="help-param">
-            <h4>Exploration Rate</h4>
-            <div class="param-range">Range: 0.05 - 0.8 (Default: 0.3)</div>
-            <p>Determines how often agents try random actions versus using their learned knowledge. High exploration encourages discovering new strategies but reduces efficiency. Low exploration focuses on known good strategies but may miss better solutions.</p>
-        </div>
-        
-        <div class="help-param">
-            <h4>Discount Factor</h4>
-            <div class="param-range">Range: 0.1 - 0.99 (Default: 0.95)</div>
-            <p>Controls how much agents value future rewards versus immediate rewards. Values near 1.0 make agents plan far ahead for long-term success. Lower values focus on immediate gains and short-term thinking.</p>
-        </div>
-        
-        <div class="help-param">
-            <h4>Exploration Decay</h4>
-            <div class="param-range">Range: 0.990 - 0.999 (Default: 0.995)</div>
-            <p>Rate at which exploration decreases over time. Agents start curious and gradually become more focused on their learned strategies. Higher values maintain exploration longer, lower values quickly shift to exploitation.</p>
+        <div class="help-popup-content">
+            <button class="help-close-btn" id="helpCloseBtn">&times;</button>
+            <div style="width: 100%; text-align: left; line-height: 1.4; font-size: 0.9rem;">
+                <div style="margin-bottom: 1.5rem;">
+                    <h3 style="color: #7FE9E1; margin-bottom: 0.4rem; font-size: 1.1rem;">Learning Parameters Explained</h3>
+                </div>
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <h4 style="color: #7FE9E1; margin-bottom: 0.4rem; font-size: 1.1rem;">Learning Rate</h4>
+                    <p style="margin-bottom: 0.3rem; font-size: 0.85rem; color: #a0e7e0; font-style: italic;">Range: 0.01 - 0.5 (Default: 0.1)</p>
+                    <p style="margin-bottom: 0.5rem;">Controls how much the AI agents learn from each experience. Higher values make agents adapt quickly to new situations but may cause instability. Lower values create stable, gradual learning but slower adaptation.</p>
+                </div>
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <h4 style="color: #7FE9E1; margin-bottom: 0.4rem; font-size: 1.1rem;">Exploration Rate</h4>
+                    <p style="margin-bottom: 0.3rem; font-size: 0.85rem; color: #a0e7e0; font-style: italic;">Range: 0.05 - 0.8 (Default: 0.3)</p>
+                    <p style="margin-bottom: 0.5rem;">Determines how often agents try random actions versus using their learned knowledge. High exploration encourages discovering new strategies but reduces efficiency. Low exploration focuses on known good strategies but may miss better solutions.</p>
+                </div>
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <h4 style="color: #7FE9E1; margin-bottom: 0.4rem; font-size: 1.1rem;">Discount Factor</h4>
+                    <p style="margin-bottom: 0.3rem; font-size: 0.85rem; color: #a0e7e0; font-style: italic;">Range: 0.1 - 0.99 (Default: 0.95)</p>
+                    <p style="margin-bottom: 0.5rem;">Controls how much agents value future rewards versus immediate rewards. Values near 1.0 make agents plan far ahead for long-term success. Lower values focus on immediate gains and short-term thinking.</p>
+                </div>
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <h4 style="color: #7FE9E1; margin-bottom: 0.4rem; font-size: 1.1rem;">Exploration Decay</h4>
+                    <p style="margin-bottom: 0.3rem; font-size: 0.85rem; color: #a0e7e0; font-style: italic;">Range: 0.990 - 0.999 (Default: 0.995)</p>
+                    <p style="margin-bottom: 0.5rem;">Rate at which exploration decreases over time. Agents start curious and gradually become more focused on their learned strategies. Higher values maintain exploration longer, lower values quickly shift to exploitation.</p>
+                </div>
+            </div>
         </div>
     </div>
 </body>
