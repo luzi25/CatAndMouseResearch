@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lumon Research</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Scriptorama+Tradeshow+JF&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -161,9 +161,9 @@
         }
 
         .header h1 {
-            font-family: 'Scriptorama Tradeshow JF', 'Space Mono', 'Lucida Console', monospace;
+            font-family: 'Orbitron', 'Space Mono', 'Lucida Console', 'Impact', 'Arial Black', monospace;
             font-size: 4rem;
-            font-weight: 600;
+            font-weight: 700;
             color: #7FE9E1;
             text-align: center;
             letter-spacing: 2px;
@@ -322,6 +322,44 @@
             overflow-y: auto;
         }
 
+        /* Hide scrollbar for display controls while maintaining scroll functionality */
+        #displayControlsContent:not(.collapsed) {
+            overflow-y: auto;
+            overflow-x: hidden;
+            /* Hide scrollbar for WebKit browsers */
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE/Edge */
+        }
+        
+        /* Hide scrollbar for learning parameters */
+        #learningParametersContent:not(.collapsed) {
+            overflow-y: auto;
+            overflow-x: hidden;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE/Edge */
+        }
+        
+        /* Hide scrollbar for rewards */
+        #rewardsContent:not(.collapsed) {
+            overflow-y: auto;
+            overflow-x: hidden;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE/Edge */
+        }
+        
+        /* Hide scrollbar for WebKit browsers */
+        #displayControlsContent:not(.collapsed)::-webkit-scrollbar {
+            display: none;
+        }
+        
+        #learningParametersContent:not(.collapsed)::-webkit-scrollbar {
+            display: none;
+        }
+        
+        #rewardsContent:not(.collapsed)::-webkit-scrollbar {
+            display: none;
+        }
+
         #layoutContent:not(.collapsed)::-webkit-scrollbar {
             display: none;
         }
@@ -329,6 +367,45 @@
         /* Enhanced slider value displays */
         .speed-display {
             transition: transform 0.15s ease, color 0.15s ease;
+        }
+        
+        /* DecryptedText effect styles */
+        .decrypted-text-wrapper {
+            display: inline-block;
+            white-space: pre-wrap;
+        }
+        
+        .decrypted-char {
+            display: inline-block;
+            transition: opacity 0.1s ease;
+        }
+        
+        .encrypted-char {
+            color: #4B566A;
+            opacity: 0.6;
+        }
+        
+        .decrypted-char.revealed {
+            color: #7FE9E1;
+            opacity: 1;
+        }
+        
+        /* Ensure interactive elements stay above any canvas */
+        .left-panel, .right-panel, .help-popup, .help-popup-overlay,
+        .left-panel button, .left-panel input, .left-panel select,
+        .right-panel button, .right-panel input, .right-panel select,
+        .draggable-panel, .button-row, .button-row button,
+        .chart-close-btn, .help-close-btn {
+            position: relative;
+            z-index: 1000 !important;
+            pointer-events: auto !important;
+        }
+        
+        /* Special handling for main control buttons */
+        #startTraining, #stopTraining, #continueTraining, #newTraining, #startNewRound,
+        #downloadTraining, #uploadTrainingButton {
+            z-index: 1001 !important;
+            pointer-events: auto !important;
         }
 
         /* Help popup styles - matching welcome page */
@@ -452,6 +529,12 @@
             min-width: 1ch;
             text-align: center;
             font-family: 'Consolas', 'Courier New', monospace;
+        }
+
+        .header .scramble-char {
+            display: inline-block;
+            min-width: 1ch;
+            text-align: center;
         }
 
         .inline-editable {
@@ -719,27 +802,6 @@
             transform-style: preserve-3d;
         }
         
-        /* Fisheye lens distortion overlay */
-        .crt-fisheye-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 1000;
-            background: 
-                radial-gradient(ellipse 85% 90% at center, 
-                    rgba(255,255,255,0.02) 0%, 
-                    transparent 20%, 
-                    transparent 70%, 
-                    rgba(0,0,0,0.05) 85%, 
-                    rgba(0,0,0,0.15) 95%, 
-                    rgba(0,0,0,0.4) 100%
-                );
-            border-radius: 30px;
-            mix-blend-mode: overlay;
-        }
         
         /* Screen glass reflection effect */
         .crt-glass-reflection {
@@ -824,6 +886,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            padding-top: 2rem; /* Add padding to avoid title overlap */
         }
 
         .grid {
@@ -842,6 +905,48 @@
             height: 100%;
             display: flex;
             align-items: flex-start;
+            position: relative;
+        }
+
+        /* Mouse proximity effects for individual characters */
+        .grid-char {
+            display: inline-block;
+            transition: all 0.15s ease-out;
+            position: relative;
+            z-index: 1;
+        }
+
+        .grid-char.proximity-active {
+            transform: scale(var(--char-scale, 1));
+            color: rgba(127, 233, 225, var(--char-intensity, 1));
+            text-shadow: 
+                0 0 calc(5px * var(--char-glow, 1)) rgba(127, 233, 225, var(--char-intensity, 0.3)),
+                0 0 calc(10px * var(--char-glow, 1)) rgba(127, 233, 225, calc(var(--char-intensity, 0.2) * 0.5)),
+                0 0 calc(15px * var(--char-glow, 1)) rgba(127, 233, 225, calc(var(--char-intensity, 0.1) * 0.3));
+            font-weight: calc(400 + (200 * var(--char-weight, 0)));
+        }
+
+        /* Special effects for different character types */
+        .grid-char.char-cat.proximity-active {
+            color: rgba(255, 120, 120, var(--char-intensity, 1));
+            text-shadow: 
+                0 0 calc(8px * var(--char-glow, 1)) rgba(255, 120, 120, var(--char-intensity, 0.4)),
+                0 0 calc(16px * var(--char-glow, 1)) rgba(255, 120, 120, calc(var(--char-intensity, 0.3) * 0.5));
+        }
+
+        .grid-char.char-mouse.proximity-active {
+            color: rgba(120, 255, 120, var(--char-intensity, 1));
+            text-shadow: 
+                0 0 calc(8px * var(--char-glow, 1)) rgba(120, 255, 120, var(--char-intensity, 0.4)),
+                0 0 calc(16px * var(--char-glow, 1)) rgba(120, 255, 120, calc(var(--char-intensity, 0.3) * 0.5));
+        }
+
+        .grid-char.char-obstacle.proximity-active {
+            color: rgba(255, 255, 120, var(--char-intensity, 1));
+            text-shadow: 
+                0 0 calc(6px * var(--char-glow, 1)) rgba(255, 255, 120, var(--char-intensity, 0.4)),
+                0 0 calc(12px * var(--char-glow, 1)) rgba(255, 255, 120, calc(var(--char-intensity, 0.3) * 0.5));
+        }
             justify-content: center;
             padding-top: 4.1rem;
             font-weight: normal;
@@ -966,9 +1071,9 @@
     <div class="crt-overlay"></div>
     
     <!-- CRT Monitor Effects -->
-    <div class="crt-fisheye-overlay" id="crtFisheyeOverlay"></div>
     <div class="crt-glass-reflection" id="crtGlassReflection"></div>
     <div class="crt-bezel-shadow" id="crtBezelShadow"></div>
+    
     
     <!-- CRT Shader Canvas -->
     <canvas id="crtCanvas" style="position: fixed; top: 0; left: 0; pointer-events: none; z-index: 1001; mix-blend-mode: overlay;"></canvas>
@@ -988,15 +1093,15 @@
                     
                     <div class="param-row">
                         <span class="param-label">Episode Count:</span>
-                        <span class="param-value inline-editable" data-type="number" data-min="1" data-max="10000" data-input-id="episodeCount" data-callback="updateNumericValue">1000</span>
+                        <span class="param-value inline-editable" data-type="number" data-min="1" data-input-id="episodeCount" data-callback="updateNumericValue">1000</span>
                     </div>
-                    <input type="number" id="episodeCount" value="1000" min="1" max="10000" style="display: none;">
+                    <input type="number" id="episodeCount" value="1000" min="1" style="display: none;">
                     
                     <div class="param-row">
                         <span class="param-label">Step Count:</span>
-                        <span class="param-value inline-editable" data-type="number" data-min="10" data-max="1000" data-input-id="stepCount" data-callback="updateNumericValue">200</span>
+                        <span class="param-value inline-editable" data-type="number" data-min="10" data-input-id="stepCount" data-callback="updateNumericValue">200</span>
                     </div>
-                    <input type="number" id="stepCount" value="200" min="10" max="1000" style="display: none;">
+                    <input type="number" id="stepCount" value="200" min="10" style="display: none;">
                     
                     <div class="param-row">
                         <span class="param-label">Cat Vision:</span>
@@ -1010,13 +1115,39 @@
                     </div>
                     <input type="number" id="preyVision" value="6" min="1" max="15" style="display: none;">
                     
+                    
                     <div class="param-row">
                         <span class="param-label">Obstacle Count:</span>
                         <span class="param-value inline-editable" data-type="number" data-min="0" data-max="50" data-input-id="obstacleCount" data-callback="updateNumericValue">10</span>
                     </div>
                     <input type="number" id="obstacleCount" value="10" min="0" max="50" style="display: none;">
                     
-                    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #4B566A;">
+                    <div class="param-row" style="margin-top: 0.5rem;">
+                        <span class="param-label">Cone Vision:</span>
+                        <input type="checkbox" id="toggleConeVision" checked style="margin: 0;">
+                    </div>
+                    
+                    <div class="param-item">
+                        <label for="visionAngle" id="visionAngleLabel">Vision Cone Angle: 90°</label>
+                        <input type="range" id="visionAngle" min="30" max="180" step="15" value="90">
+                        <div class="speed-display" id="visionAngleDisplay">90°</div>
+                    </div>
+                    
+                    <div class="param-item">
+                        <label for="simulationSpeed" id="simulationSpeedLabel">Simulation Speed: 100ms</label>
+                        <input type="range" id="simulationSpeed" min="1" max="5000" step="10" value="100">
+                        <div class="speed-display" id="speedDisplay">100ms</div>
+                    </div>
+                    
+                    <div style="margin-top: 1rem; padding-top: 1rem;">
+                        <div class="button-row" style="margin-bottom: 1rem;">
+                            <button class="btn btn-primary" id="startTraining">Start</button>
+                            <button class="btn btn-danger" id="stopTraining">Stop</button>
+                            <button class="btn btn-secondary" id="continueTraining">Continue</button>
+                            <button class="btn btn-secondary" id="newTraining" style="display: none;">New Training</button>
+                            <button class="btn btn-secondary" id="startNewRound" style="display: none;">New Round</button>
+                        </div>
+                        
                         <div class="collapsible-title collapsed" id="learningParametersToggle" style="font-size: 0.9rem; margin-bottom: 0.5rem; color: #7FE9E1; text-transform: uppercase;">Learning Parameters</div>
                         <div class="collapsible-content collapsed" id="learningParametersContent">
                         
@@ -1052,7 +1183,7 @@
                             </div>
                         </div>
                         
-                        <div style="border-top: 1px solid #4B566A; padding-top: 0.5rem;">
+                        <div style="padding-top: 0.5rem;">
                             <h5 style="font-size: 0.8rem; color: #7FE9E1; margin-bottom: 0.3rem; text-transform: uppercase;">Shared Parameters</h5>
                             
                             <div class="param-item">
@@ -1182,42 +1313,36 @@
                     </div>
                     
                     <div class="param-row">
-                        <span class="param-label">Cone Vision:</span>
-                        <input type="checkbox" id="toggleConeVision" style="margin: 0;">
+                        <span class="param-label">Show Heat Map:</span>
+                        <input type="checkbox" id="toggleHeatMap" style="margin: 0;">
                     </div>
                     
                     <div class="param-item">
-                        <label for="visionAngle">Vision Cone Angle</label>
-                        <input type="range" id="visionAngle" min="30" max="180" step="15" value="90">
-                        <div class="speed-display" id="visionAngleDisplay">90°</div>
+                        <label for="heatMapIntensity">Heat Map Intensity</label>
+                        <input type="range" id="heatMapIntensity" min="0.1" max="1.0" step="0.1" value="0.7">
+                        <div class="speed-display" id="heatMapIntensityDisplay">0.7</div>
                     </div>
                     
-                    
-                    <div class="param-item">
-                        <label for="simulationSpeed">Simulation Speed</label>
-                        <input type="range" id="simulationSpeed" min="1" max="5000" step="10" value="100">
-                        <div class="speed-display" id="speedDisplay">100ms</div>
+                    <div class="button-row" style="margin-top: 0.5rem;">
+                        <button class="btn btn-secondary" id="clearHeatMap" style="font-size: 0.8rem;">Clear Heat Map</button>
                     </div>
                     </div>
                 </div>
 
-
+                <!-- Environment Presets Section -->
                 <div class="param-group">
-                    <h4 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #7FE9E1; text-transform: uppercase;">Actions</h4>
+                    <h4 style="font-size: 0.9rem; margin-bottom: 0.3rem; color: #7FE9E1; text-transform: uppercase;">Presets</h4>
                     
-                    <div class="button-row">
-                        <button class="btn btn-primary" id="startTraining">Start</button>
-                        <button class="btn btn-danger" id="stopTraining">Stop</button>
-                        <button class="btn btn-secondary" id="continueTraining">Continue</button>
+                    <div class="button-row" style="margin-bottom: 0.3rem;">
+                        <button class="btn btn-secondary" id="presetBeginner" style="font-size: 0.7rem; padding: 0.2rem 0.4rem;">Begin</button>
+                        <button class="btn btn-secondary" id="presetIntermediate" style="font-size: 0.7rem; padding: 0.2rem 0.4rem;">Inter</button>
+                        <button class="btn btn-secondary" id="presetExpert" style="font-size: 0.7rem; padding: 0.2rem 0.4rem;">Expert</button>
+                        <button class="btn btn-secondary" id="presetChaos" style="font-size: 0.7rem; padding: 0.2rem 0.4rem;">Chaos</button>
                     </div>
-                </div>
-
-                <div class="param-group">
-                    <h4 style="font-size: 1.1rem; margin-bottom: 0.3rem; color: #7FE9E1; text-transform: uppercase;">Persistence</h4>
                     
                     <div class="button-row">
-                        <button class="btn btn-secondary" id="downloadTraining">Download</button>
-                        <button class="btn btn-secondary" id="uploadTrainingButton">Upload</button>
+                        <button class="btn btn-secondary" id="downloadTraining" style="font-size: 0.7rem; padding: 0.2rem 0.4rem;">Download</button>
+                        <button class="btn btn-secondary" id="uploadTrainingButton" style="font-size: 0.7rem; padding: 0.2rem 0.4rem;">Upload</button>
                     </div>
                     <input type="file" id="uploadTraining" class="file-input" accept=".json" style="display: none;">
                 </div>
@@ -1226,51 +1351,53 @@
             <!-- Middle Column: Simulation View -->
             <div class="simulation-view">
                 <!-- Welcome Screen -->
-                <div id="welcomeScreen" style="width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; padding: 0.8rem; padding-top: 4rem; color: #7FE9E1; overflow-y: auto;">
-                    <div style="width: 100%; text-align: left; line-height: 1.2; font-size: 0.75rem;">
-                        <div style="margin-bottom: 0.8rem;">
-                            <h3 style="color: #7FE9E1; margin-bottom: 0.2rem; font-size: 0.9rem;">The Game</h3>
-                            <p style="margin-bottom: 0.3rem;">Watch AI agents learn through reinforcement learning! A <strong>Cat (C)</strong> hunts a <strong>Mouse (M)</strong> in a grid with <strong>Obstacles (O)</strong>. Both agents use Q-Learning to develop strategies - the cat learns to hunt efficiently while the mouse learns to escape.</p>
+                <div id="welcomeScreen" style="width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; padding: 0.8rem; padding-top: 3rem; color: #7FE9E1; overflow-y: auto;">
+                    <div style="width: 100%; text-align: left; line-height: 1.3; font-size: 0.8rem;">
+                        <div style="margin-bottom: 1rem; text-align: center;">
+                            <h2 style="color: #7FE9E1; margin-bottom: 0.3rem; font-size: 1.2rem; font-weight: bold;" data-decrypt="heading">AI Predator-Prey Research Platform</h2>
+                            <p style="margin-bottom: 0.5rem; font-size: 0.75rem; opacity: 0.9;" data-decrypt="content">Advanced reinforcement learning simulation with real-time analytics</p>
                         </div>
                         
-                        <div style="margin-bottom: 0.8rem;">
-                            <h3 style="color: #7FE9E1; margin-bottom: 0.2rem; font-size: 0.9rem;">Control Center & Learning Parameters</h3>
-                            <p style="margin-bottom: 0.2rem;"><strong>Simulation Parameters:</strong> Episodes, steps, vision ranges, obstacles</p>
-                            <p style="margin-bottom: 0.2rem;"><strong><span class="help-clickable" id="welcomeHelpTrigger">Learning Parameters:</span></strong> Learning Rate, Exploration Rate, Discount Factor, Exploration Decay</p>
-                            <p style="margin-bottom: 0.3rem;"><strong>Real-time Tuning:</strong> Adjust parameters during training to see immediate effects</p>
-                        </div>
-                        
-                        <div style="margin-bottom: 0.8rem;">
-                            <h3 style="color: #7FE9E1; margin-bottom: 0.2rem; font-size: 0.9rem;">Reward System</h3>
-                            <p style="margin-bottom: 0.3rem;">The AI agents learn through a balanced reward system optimized for competitive gameplay:</p>
-                            <div style="margin-left: 0.5rem;">
-                                <p style="margin-bottom: 0.15rem;"><strong>Cat (Predator):</strong></p>
-                                <p style="margin-bottom: 0.1rem; margin-left: 0.5rem; font-size: 0.7rem;" id="welcomeCatRewards">• Win: +500 | Failure: -200 | Hunting: +8 | Exploration: +2</p>
-                                <p style="margin-bottom: 0.15rem; margin-left: 0.5rem; font-size: 0.7rem;" id="welcomeCatPenalties">• Retreating: -1 | Standing still: -0.1</p>
-                                <p style="margin-bottom: 0.15rem;"><strong>Mouse (Prey):</strong></p>
-                                <p style="margin-bottom: 0.1rem; margin-left: 0.5rem; font-size: 0.7rem;" id="welcomeMouseRewards">• Survival: +500 | Caught: -500 | Strategic escape: +4 | Blind escape: +2</p>
-                                <p style="margin-bottom: 0.3rem; margin-left: 0.5rem; font-size: 0.7rem;" id="welcomeMousePenalties">• Approaching danger: -2 | Moving toward danger: -0.5 | Standing still (visible): -0.5</p>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                            <div style="background: rgba(75, 86, 106, 0.1); padding: 0.6rem; border-radius: 4px; border-left: 3px solid #7FE9E1;">
+                                <h4 style="color: #7FE9E1; margin-bottom: 0.3rem; font-size: 0.85rem;" data-decrypt="heading">The Simulation</h4>
+                                <p style="margin-bottom: 0.2rem; font-size: 0.75rem;" data-decrypt="content">Cat (C) hunts Mouse (M) in a grid with Obstacles (O)</p>
+                                <p style="font-size: 0.7rem; opacity: 0.8;" data-decrypt="content">Both agents use Q-Learning to develop optimal strategies</p>
+                            </div>
+                            
+                            <div style="background: rgba(75, 86, 106, 0.1); padding: 0.6rem; border-radius: 4px; border-left: 3px solid #7FE9E1;">
+                                <h4 style="color: #7FE9E1; margin-bottom: 0.3rem; font-size: 0.85rem;" data-decrypt="heading">Controls</h4>
+                                <p style="margin-bottom: 0.2rem; font-size: 0.75rem;" data-decrypt="content">Adjust parameters in real-time during training</p>
+                                <p style="font-size: 0.7rem; opacity: 0.8;" data-decrypt="content">Individual learning rates for each agent</p>
                             </div>
                         </div>
                         
-                        <div style="margin-bottom: 0.8rem;">
-                            <h3 style="color: #7FE9E1; margin-bottom: 0.2rem; font-size: 0.9rem;">Actions</h3>
-                            <p style="margin-bottom: 0.2rem;"><strong>Start:</strong> Begin training with current settings</p>
-                            <p style="margin-bottom: 0.2rem;"><strong>Stop:</strong> Pause training (can be resumed)</p>
-                            <p style="margin-bottom: 0.3rem;"><strong>Continue:</strong> Resume paused training</p>
-                        </div>
-                        
-                        <div style="margin-bottom: 0.8rem;">
-                            <h3 style="color: #7FE9E1; margin-bottom: 0.2rem; font-size: 0.9rem;">Training Persistence</h3>
-                            <p style="margin-bottom: 0.3rem;">Save and restore complete AI training sessions with full state preservation:</p>
-                            <div style="margin-left: 0.5rem;">
-                                <p style="margin-bottom: 0.15rem;"><strong>Download Training:</strong> Exports Q-tables, episode history, win statistics, environment configuration, and character mappings</p>
-                                <p style="margin-bottom: 0.15rem;"><strong>Upload Training:</strong> Automatically switches Start button to Continue and restores exact game environment</p>
-                                <p style="margin-bottom: 0.15rem;"><strong>Smart Button States:</strong> Interface adapts based on loaded training data</p>
-                                <p style="margin-bottom: 0.3rem;"><strong>Environment Preservation:</strong> Obstacle layouts, spawn points, and custom characters maintained</p>
+                        <div style="background: rgba(75, 86, 106, 0.1); padding: 0.6rem; border-radius: 4px; margin-bottom: 1rem;">
+                            <h4 style="color: #7FE9E1; margin-bottom: 0.3rem; font-size: 0.85rem;" data-decrypt="heading">Balanced Reward System</h4>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; font-size: 0.7rem;">
+                                <div>
+                                    <p style="margin-bottom: 0.2rem;"><strong>Cat Rewards:</strong></p>
+                                    <p style="margin-left: 0.3rem; margin-bottom: 0.1rem;" id="welcomeCatRewards" data-decrypt="content">Win: +500, Hunting: +8, Exploration: +2</p>
+                                </div>
+                                <div>
+                                    <p style="margin-bottom: 0.2rem;"><strong>Mouse Rewards:</strong></p>
+                                    <p style="margin-left: 0.3rem; margin-bottom: 0.1rem;" id="welcomeMouseRewards" data-decrypt="content">Survival: +500, Strategic escape: +4</p>
+                                </div>
                             </div>
                         </div>
                         
+                        <div style="background: rgba(75, 86, 106, 0.1); padding: 0.6rem; border-radius: 4px; margin-bottom: 1rem;">
+                            <h4 style="color: #7FE9E1; margin-bottom: 0.3rem; font-size: 0.85rem;" data-decrypt="heading">Training Persistence</h4>
+                            <p style="margin-bottom: 0.3rem; font-size: 0.75rem;" data-decrypt="content">Save and restore complete training sessions with full state preservation</p>
+                            <div style="font-size: 0.7rem; opacity: 0.9;">
+                                <p style="margin-bottom: 0.1rem;">• Download: Exports Q-tables, episode history, environment config</p>
+                                <p style="margin-bottom: 0.1rem;">• Upload: Restores exact game environment and button states</p>
+                            </div>
+                        </div>
+                        
+                        <div style="text-align: center; margin-top: 1rem; padding-top: 0.5rem; border-top: 1px solid rgba(75, 86, 106, 0.3);">
+                            <p style="font-size: 0.7rem; opacity: 0.7;" data-decrypt="content">Click <strong>Start</strong> to begin training • Use <strong>Ctrl+M</strong> for advanced settings</p>
+                        </div>
                     </div>
                 </div>
                 
@@ -1284,16 +1411,36 @@
                 <!-- Separate Footer/Legend -->
                 <div class="footer-container">
                     <div class="legend" id="gridLegend">
-                        <span class="cat">C: CAT</span> | 
-                        <span class="mouse">M: MOUSE</span> | 
+                        <span class="cat">C: CAT(S)</span> | 
+                        <span class="mouse">M: MOUSE (MICE)</span> | 
                         <span class="obstacle">O: OBSTACLE</span> | 
-                        <span class="cat-vision">?: CAT & MOUSE VISION</span> | 
-                        <span class="mouse-vision">!: VISION COLISION</span>
+                        <span class="cat-vision">?: VISION</span> | 
+                        <span class="mouse-vision">!: VISION OVERLAP</span>
                     </div>
                 </div>
                 
                 <div class="chart-container" id="chartContainer">
                     <button class="chart-close-btn" id="chartCloseBtn">×</button>
+                    <div class="chart-stats" id="chartStats" style="padding: 1rem; background: rgba(16, 24, 39, 0.9); color: #7FE9E1; font-size: 0.8rem; border-bottom: 1px solid #4B566A; display: none;">
+                        <h4 style="color: #7FE9E1; margin-bottom: 0.5rem;">Training Summary</h4>
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+                            <div>
+                                <div><strong>Fastest Round:</strong> <span id="fastestRound">-</span></div>
+                                <div><strong>Slowest Round:</strong> <span id="slowestRound">-</span></div>
+                                <div><strong>Average Round:</strong> <span id="averageRound">-</span></div>
+                            </div>
+                            <div>
+                                <div><strong>Min Steps:</strong> <span id="minSteps">-</span></div>
+                                <div><strong>Max Steps:</strong> <span id="maxSteps">-</span></div>
+                                <div><strong>Total Episodes:</strong> <span id="totalEpisodes">-</span></div>
+                            </div>
+                            <div>
+                                <div><strong>Best Cat Score:</strong> <span id="bestCatScore">-</span></div>
+                                <div><strong>Best Mouse Score:</strong> <span id="bestMouseScore">-</span></div>
+                                <div><strong>Final Win Rates:</strong> <span id="finalWinRates">-</span></div>
+                            </div>
+                        </div>
+                    </div>
                     <canvas id="performanceChart"></canvas>
                 </div>
             </div>
@@ -1311,6 +1458,7 @@
                     <span class="stat-label">Step:</span>
                     <span class="stat-value" id="currentStep">0</span>
                 </div>
+                
                 
                 <div class="stat-row">
                     <span class="stat-label">Cat Wins:</span>
@@ -1344,6 +1492,11 @@
                     </div>
                     
                     <div class="stat-row">
+                        <span class="stat-label">Progress:</span>
+                        <span class="stat-value" id="trainingProgress">0%</span>
+                    </div>
+                    
+                    <div class="stat-row">
                         <span class="stat-label">Cat Score:</span>
                         <span class="stat-value" id="currentCatScore">0</span>
                     </div>
@@ -1354,14 +1507,59 @@
                     </div>
                     
                     <div class="stat-row">
+                        <span class="stat-label">Cat Exploration:</span>
+                        <span class="stat-value" id="currentCatEpsilon">35.0%</span>
+                    </div>
+                    
+                    <div class="stat-row">
+                        <span class="stat-label">Mouse Exploration:</span>
+                        <span class="stat-value" id="currentMouseEpsilon">25.0%</span>
+                    </div>
+                    
+                    <div class="stat-row">
+                        <span class="stat-label">Knowledge Size:</span>
+                        <span class="stat-value" id="knowledgeSize">0 states</span>
+                    </div>
+                    
+                    <div class="stat-row">
                         <span class="stat-label">Obstacles:</span>
                         <span class="stat-value" id="obstacleCountDisplay">0</span>
                     </div>
+                    
+                    <div class="stat-row">
+                        <span class="stat-label">Learning Efficiency:</span>
+                        <span class="stat-value" id="learningEfficiency">-</span>
+                    </div>
                 </div>
                 
-                <!-- Settings -->
+                <!-- Performance Prediction Section -->
+                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #4B566A;">
+                    <h4 style="font-size: 0.9rem; margin-bottom: 0.5rem; color: #7FE9E1; text-transform: uppercase;">Performance Trends</h4>
+                    
+                    <div class="stat-row">
+                        <span class="stat-label">Win Rate Trend:</span>
+                        <span class="stat-value" id="winRateTrend">-</span>
+                    </div>
+                    
+                    <div class="stat-row">
+                        <span class="stat-label">Predicted Winner:</span>
+                        <span class="stat-value" id="predictedWinner">-</span>
+                    </div>
+                    
+                    <div class="stat-row">
+                        <span class="stat-label">Confidence:</span>
+                        <span class="stat-value" id="predictionConfidence">-</span>
+                    </div>
+                    
+                    <div class="stat-row">
+                        <span class="stat-label">Convergence:</span>
+                        <span class="stat-value" id="convergenceStatus">-</span>
+                    </div>
+                </div>
+                
+                <!-- Settings Section -->
                 <div class="settings-section-hidden" id="settingsSection" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #4B566A;">
-                    <div class="collapsible-title collapsed" id="settingsToggle">Settings</div>
+                    <div class="collapsible-title collapsed" id="settingsToggle" style="font-size: 0.9rem; margin-bottom: 0.5rem; color: #7FE9E1; text-transform: uppercase;">Settings</div>
                     <div class="collapsible-content collapsed" id="settingsContent">
                         
                         <!-- Grid Font Controls -->
@@ -1413,33 +1611,65 @@
                             </div>
                             
                             <div class="param-item">
-                                <label for="crtWarp">Fisheye Lens</label>
-                                <input type="range" id="crtWarp" min="0" max="5" step="0.1" value="0">
-                                <div class="speed-display" id="warpDisplay">0</div>
-                            </div>
-                            
-                            <div class="param-item">
                                 <label for="crtChromaticAberration">Chromatic Aberration</label>
                                 <input type="range" id="crtChromaticAberration" min="0" max="10" step="0.5" value="8">
                                 <div class="speed-display" id="chromaticDisplay">8</div>
                             </div>
                             
                             <div class="param-item">
-                                <label for="crtDistortion">Wave Distortion</label>
-                                <input type="range" id="crtDistortion" min="0" max="10" step="0.5" value="7.5">
-                                <div class="speed-display" id="distortionDisplay">7.5</div>
+                                <label for="shaderScreenWidth">Screen Width</label>
+                                <input type="range" id="shaderScreenWidth" min="240" max="1920" step="10" value="1920">
+                                <div class="speed-display" id="screenWidthDisplay">1920</div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <label for="shaderScreenHeight">Screen Height</label>
+                                <input type="range" id="shaderScreenHeight" min="135" max="1080" step="5" value="1080">
+                                <div class="speed-display" id="screenHeightDisplay">1080</div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <label for="captureScale">Capture Resolution Scale</label>
+                                <input type="range" id="captureScale" min="0.2" max="2.0" step="0.1" value="1.2">
+                                <div class="speed-display" id="captureScaleDisplay">1.2</div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <label for="captureThrottle">Update Frequency (ms)</label>
+                                <input type="range" id="captureThrottle" min="50" max="1000" step="50" value="100">
+                                <div class="speed-display" id="captureThrottleDisplay">100</div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <label for="textureFiltering">Texture Filtering</label>
+                                <select id="textureFiltering">
+                                    <option value="NEAREST">Sharp (NEAREST)</option>
+                                    <option value="LINEAR">Smooth (LINEAR)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="param-item">
+                                <label for="centerX">Center X Offset</label>
+                                <input type="range" id="centerX" min="-0.5" max="0.5" step="0.01" value="0">
+                                <div class="speed-display" id="centerXDisplay">0</div>
+                            </div>
+                            
+                            <div class="param-item">
+                                <label for="centerY">Center Y Offset</label>
+                                <input type="range" id="centerY" min="-0.5" max="0.5" step="0.01" value="0">
+                                <div class="speed-display" id="centerYDisplay">0</div>
                             </div>
                             
                             <div class="param-item">
                                 <label for="crtVignette">Vignette</label>
-                                <input type="range" id="crtVignette" min="0" max="10" step="0.5" value="3.5">
-                                <div class="speed-display" id="vignetteDisplay">3.5</div>
+                                <input type="range" id="crtVignette" min="0" max="10" step="0.5" value="5">
+                                <div class="speed-display" id="vignetteDisplay">5</div>
                             </div>
                             
                             <div class="param-item">
                                 <label for="crtContrast">Contrast</label>
-                                <input type="range" id="crtContrast" min="0.5" max="2" step="0.1" value="0.9">
-                                <div class="speed-display" id="contrastDisplay">0.9</div>
+                                <input type="range" id="crtContrast" min="0.5" max="2" step="0.1" value="1">
+                                <div class="speed-display" id="contrastDisplay">1</div>
                             </div>
                             
                             <div class="param-item">
@@ -1494,73 +1724,72 @@
                             </div>
                         </div>
                             
+                        <div class="param-item">
+                            <label for="textPressureMinWeight">Min Font Weight</label>
+                            <input type="range" id="textPressureMinWeight" min="1" max="1500" step="1" value="1">
+                            <div class="speed-display" id="minWeightDisplay">1</div>
+                        </div>
+                        
+                        <div class="param-item">
+                            <label for="textPressureMaxWeight">Max Font Weight</label>
+                            <input type="range" id="textPressureMaxWeight" min="1" max="1500" step="1" value="1500">
+                            <div class="speed-display" id="maxWeightDisplay">1500</div>
+                        </div>
+                        
+                        <div class="param-item">
+                            <label for="textPressureMinOpacity">Min Opacity</label>
+                            <input type="range" id="textPressureMinOpacity" min="0" max="1" step="0.1" value="0.8">
+                            <div class="speed-display" id="minOpacityDisplay">0.8</div>
+                        </div>
+                        
+                        <div class="param-item">
+                            <label for="textPressureMaxOpacity">Max Opacity</label>
+                            <input type="range" id="textPressureMaxOpacity" min="0.5" max="1" step="0.1" value="1">
+                            <div class="speed-display" id="maxOpacityDisplay">1</div>
+                        </div>
+                        
+                        <div style="margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid #4B566A;">
+                            <h4 style="font-size: 1.1rem; margin-bottom: 0.3rem; color: #7FE9E1; text-transform: uppercase;">Text Effects</h4>
+                            
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="textPressureBold" checked>
+                                <label for="textPressureBold">Bold Weight Effect</label>
+                            </div>
+                            
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="textPressureItalic">
+                                <label for="textPressureItalic">Italic Effect</label>
+                            </div>
+                            
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="textPressureStrike">
+                                <label for="textPressureStrike">Strikethrough Effect</label>
+                            </div>
+                            
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="textPressureUnderline">
+                                <label for="textPressureUnderline">Underline Effect</label>
+                            </div>
+                            
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="textPressureScale" checked>
+                                <label for="textPressureScale">Scale Effect</label>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 0.5rem;">
                             <div class="param-item">
-                                <label for="textPressureMinWeight">Min Font Weight</label>
-                                <input type="range" id="textPressureMinWeight" min="1" max="1500" step="1" value="1">
-                                <div class="speed-display" id="minWeightDisplay">1</div>
+                                <label for="textPressureScaleMin">Min Scale</label>
+                                <input type="range" id="textPressureScaleMin" min="0.5" max="1" step="0.1" value="0.7">
+                                <div class="speed-display" id="scaleMinDisplay">0.7</div>
                             </div>
                             
                             <div class="param-item">
-                                <label for="textPressureMaxWeight">Max Font Weight</label>
-                                <input type="range" id="textPressureMaxWeight" min="1" max="1500" step="1" value="1500">
-                                <div class="speed-display" id="maxWeightDisplay">1500</div>
+                                <label for="textPressureScaleMax">Max Scale</label>
+                                <input type="range" id="textPressureScaleMax" min="1" max="3" step="0.1" value="1.3">
+                                <div class="speed-display" id="scaleMaxDisplay">1.3</div>
                             </div>
-                            
-                            <div class="param-item">
-                                <label for="textPressureMinOpacity">Min Opacity</label>
-                                <input type="range" id="textPressureMinOpacity" min="0" max="1" step="0.1" value="0.8">
-                                <div class="speed-display" id="minOpacityDisplay">0.8</div>
-                            </div>
-                            
-                            <div class="param-item">
-                                <label for="textPressureMaxOpacity">Max Opacity</label>
-                                <input type="range" id="textPressureMaxOpacity" min="0.5" max="1" step="0.1" value="1">
-                                <div class="speed-display" id="maxOpacityDisplay">1</div>
-                            </div>
-                            
-                            <div style="margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid #4B566A;">
-                                <h4 style="font-size: 1.1rem; margin-bottom: 0.3rem; color: #7FE9E1; text-transform: uppercase;">Text Effects</h4>
-                                
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="textPressureBold" checked>
-                                    <label for="textPressureBold">Bold Weight Effect</label>
-                                </div>
-                                
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="textPressureItalic">
-                                    <label for="textPressureItalic">Italic Effect</label>
-                                </div>
-                                
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="textPressureStrike">
-                                    <label for="textPressureStrike">Strikethrough Effect</label>
-                                </div>
-                                
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="textPressureUnderline">
-                                    <label for="textPressureUnderline">Underline Effect</label>
-                                </div>
-                                
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="textPressureScale" checked>
-                                    <label for="textPressureScale">Scale Effect</label>
-                                </div>
-                            </div>
-                            
-                            <div style="margin-top: 0.5rem;">
-                                <div class="param-item">
-                                    <label for="textPressureScaleMin">Min Scale</label>
-                                    <input type="range" id="textPressureScaleMin" min="0.5" max="1" step="0.1" value="0.7">
-                                    <div class="speed-display" id="scaleMinDisplay">0.7</div>
-                                </div>
-                                
-                                <div class="param-item">
-                                    <label for="textPressureScaleMax">Max Scale</label>
-                                    <input type="range" id="textPressureScaleMax" min="1" max="3" step="0.1" value="1.3">
-                                    <div class="speed-display" id="scaleMaxDisplay">1.3</div>
-                                </div>
-                            </div>
-                            </div>
+                        </div>
                         
                         <!-- Layout Positioning -->
                         <div class="settings-section-hidden" style="margin-bottom: 1rem;">
@@ -1569,39 +1798,36 @@
                             
                             <div class="param-item">
                                 <label for="headerVerticalPos">Header Position</label>
-                                <input type="range" id="headerVerticalPos" min="-50" max="100" step="5" value="40">
-                                <div class="speed-display" id="headerPosDisplay">40px</div>
+                                <input type="range" id="headerVerticalPos" min="-50" max="100" step="5" value="5">
+                                <div class="speed-display" id="headerPosDisplay">5px</div>
                             </div>
                             
                             <div class="param-item">
                                 <label for="leftPanelVerticalPos">Left Panel Position</label>
-                                <input type="range" id="leftPanelVerticalPos" min="-100" max="200" step="5" value="165">
-                                <div class="speed-display" id="leftPanelPosDisplay">165px</div>
+                                <input type="range" id="leftPanelVerticalPos" min="-100" max="200" step="5" value="100">
+                                <div class="speed-display" id="leftPanelPosDisplay">100px</div>
                             </div>
                             
                             <div class="param-item">
                                 <label for="rightPanelVerticalPos">Right Panel Position</label>
-                                <input type="range" id="rightPanelVerticalPos" min="-100" max="200" step="5" value="165">
-                                <div class="speed-display" id="rightPanelPosDisplay">165px</div>
+                                <input type="range" id="rightPanelVerticalPos" min="-100" max="200" step="5" value="100">
+                                <div class="speed-display" id="rightPanelPosDisplay">100px</div>
                             </div>
                             
                             <div class="param-item">
                                 <label for="centerPanelVerticalPos">Center Panel Position</label>
-                                <input type="range" id="centerPanelVerticalPos" min="-100" max="200" step="5" value="-25">
-                                <div class="speed-display" id="centerPanelPosDisplay">-25px</div>
+                                <input type="range" id="centerPanelVerticalPos" min="-100" max="200" step="5" value="-85">
+                                <div class="speed-display" id="centerPanelPosDisplay">-85px</div>
                             </div>
                             
                             <div class="param-item">
                                 <label for="footerVerticalPos">Footer Position</label>
-                                <input type="range" id="footerVerticalPos" min="0" max="10" step="1" value="7">
-                                <div class="speed-display" id="footerPosDisplay">7rem</div>
+                                <input type="range" id="footerVerticalPos" min="0" max="10" step="1" value="5">
+                                <div class="speed-display" id="footerPosDisplay">5rem</div>
                             </div>
                             
                             </div>
                         </div>
-                        
-                        </div>
-                        
                         
                         <!-- Typography Controls -->
                         <div class="settings-section-compact settings-section-hidden" style="margin-bottom: 0.5rem;">
@@ -1759,6 +1985,9 @@
                 </div>
             </div>
         </div>
+        
+            </div>
+        </div>
     </div>
 
     <script>
@@ -1767,8 +1996,11 @@
                 this.gridWidth = 64;
                 this.gridHeight = 32;
                 this.grid = [];
+                
+                // Agent positions
                 this.catPos = { x: 0, y: 0 };
                 this.mousePos = { x: 0, y: 0 };
+                
                 this.obstacles = [];
                 this.isTraining = false;
                 this.isPaused = false;
@@ -1824,6 +2056,16 @@
                     mouseMovingTowardDanger: -0.5
                 };
                 
+                // Heat map tracking for strategy visualization
+                this.catHeatMap = {};    // Track cat position frequency
+                this.mouseHeatMap = {};  // Track mouse position frequency
+                this.showHeatMap = false; // Toggle for heat map display
+                this.heatMapIntensity = 0.7; // Heat map opacity
+                this.heatMapCache = null; // Cache for heat map max values
+                this.renderCount = 0; // Counter for rendering optimizations
+                
+                // Initialize agent counts from UI or defaults
+                
                 this.initializeEventListeners();
                 this.initializeGrid();
                 this.updateSpeedDisplay();
@@ -1837,12 +2079,17 @@
                 this.updateWelcomeRewardDisplay(); // Initialize welcome page reward display
                 this.updateButtonStates(); // Initialize button states
                 this.updateCRTEffect(); // Initialize CRT effect
+                
+                // Initialize UI enhancements
+                setTimeout(() => this.addKeyboardIndicator(), 1000); // Add after page loads
             }
 
             initializeEventListeners() {
                 document.getElementById('startTraining').addEventListener('click', () => this.startTraining());
                 document.getElementById('stopTraining').addEventListener('click', () => this.stopTraining());
                 document.getElementById('continueTraining').addEventListener('click', () => this.continueTraining());
+                document.getElementById('newTraining').addEventListener('click', () => this.startNewTraining());
+                document.getElementById('startNewRound').addEventListener('click', () => this.startNewRound());
                 document.getElementById('downloadTraining').addEventListener('click', () => this.downloadTraining());
                 document.getElementById('uploadTrainingButton').addEventListener('click', () => this.triggerUpload());
                 document.getElementById('simulationSpeed').addEventListener('input', () => this.updateSpeedDisplay());
@@ -1871,11 +2118,92 @@
                 document.getElementById('mouseStandingStillVisibleSlider').addEventListener('input', () => this.updateRewardParameter('mouseStandingStillVisible'));
                 document.getElementById('mouseMovingTowardDangerSlider').addEventListener('input', () => this.updateRewardParameter('mouseMovingTowardDanger'));
                 
-                // Keyboard shortcut for settings (Ctrl+M)
+                // Heat Map Controls
+                document.getElementById('toggleHeatMap').addEventListener('change', () => this.toggleHeatMap());
+                document.getElementById('heatMapIntensity').addEventListener('input', () => this.updateHeatMapIntensity());
+                document.getElementById('clearHeatMap').addEventListener('click', () => this.clearHeatMap());
+                
+                // Environment Preset Controls
+                document.getElementById('presetBeginner').addEventListener('click', () => this.loadPreset('beginner'));
+                document.getElementById('presetIntermediate').addEventListener('click', () => this.loadPreset('intermediate'));
+                document.getElementById('presetExpert').addEventListener('click', () => this.loadPreset('expert'));
+                document.getElementById('presetChaos').addEventListener('click', () => this.loadPreset('chaos'));
+                
+                // Enhanced Keyboard Shortcuts
                 document.addEventListener('keydown', (e) => {
+                    // Prevent shortcuts during text input
+                    if (e.target.tagName === 'INPUT' && e.target.type === 'text') return;
+                    
+                    // Ctrl + M: Toggle Settings
                     if (e.ctrlKey && e.key === 'm') {
                         e.preventDefault();
                         this.toggleSettingsVisibility();
+                    }
+                    
+                    // Spacebar: Start/Stop Training
+                    if (e.code === 'Space' && !e.ctrlKey && !e.altKey) {
+                        e.preventDefault();
+                        if (this.isTraining) {
+                            this.stopTraining();
+                        } else {
+                            this.startTraining();
+                        }
+                    }
+                    
+                    // P: Pause/Continue Training
+                    if (e.key === 'p' && !e.ctrlKey && !e.altKey) {
+                        e.preventDefault();
+                        if (this.isTraining && !this.isPaused) {
+                            this.isPaused = true;
+                            document.getElementById('trainingStatus').textContent = 'Paused';
+                        } else if (this.isPaused) {
+                            this.continueTraining();
+                        }
+                    }
+                    
+                    // R: Reset/New Round
+                    if (e.key === 'r' && !e.ctrlKey && !e.altKey) {
+                        e.preventDefault();
+                        this.startNewRound();
+                    }
+                    
+                    // H: Toggle Heat Map
+                    if (e.key === 'h' && !e.ctrlKey && !e.altKey) {
+                        e.preventDefault();
+                        const heatMapToggle = document.getElementById('toggleHeatMap');
+                        heatMapToggle.checked = !heatMapToggle.checked;
+                        this.toggleHeatMap();
+                    }
+                    
+                    // V: Toggle Vision
+                    if (e.key === 'v' && !e.ctrlKey && !e.altKey) {
+                        e.preventDefault();
+                        const visionToggle = document.getElementById('toggleVision');
+                        visionToggle.checked = !visionToggle.checked;
+                    }
+                    
+                    // Ctrl + D: Download Training Data
+                    if (e.ctrlKey && e.key === 'd') {
+                        e.preventDefault();
+                        this.downloadTraining();
+                    }
+                    
+                    
+                    // Arrow Keys: Adjust Speed (when Ctrl is held)
+                    if (e.ctrlKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+                        e.preventDefault();
+                        const speedSlider = document.getElementById('simulationSpeed');
+                        const currentSpeed = parseInt(speedSlider.value);
+                        const adjustment = e.key === 'ArrowUp' ? -50 : 50; // Lower number = faster
+                        const newSpeed = Math.max(1, Math.min(5000, currentSpeed + adjustment));
+                        speedSlider.value = newSpeed;
+                        this.updateSpeedDisplay();
+                    }
+                    
+                    // F1: Show Help
+                    if (e.key === 'F1') {
+                        e.preventDefault();
+                        this.showKeyboardShortcuts();
                     }
                 });
                 document.getElementById('fontSize').addEventListener('input', () => this.updateFontSize());
@@ -1958,6 +2286,9 @@
                 
                 // Initialize scramble text effect for footer
                 this.initializeScrambleText();
+                
+                // Initialize text pressure effects
+                this.initTextPressureTitle();
                 
                 // Initialize inline editing
                 this.initializeInlineEditing();
@@ -2369,6 +2700,8 @@
                     const updateDiscountFactor = () => {
                         const value = parseFloat(discountFactorSlider.value);
                         discountFactorDisplay.textContent = value.toFixed(2);
+                        const label = document.getElementById('discountFactorLabel');
+                        if (label) label.textContent = `Discount Factor: ${value.toFixed(2)}`;
                         this.discountFactor = value;
                     };
                     
@@ -2392,6 +2725,8 @@
                     const updateEpsilonDecay = () => {
                         const value = parseFloat(epsilonDecaySlider.value);
                         epsilonDecayDisplay.textContent = value.toFixed(3);
+                        const label = document.getElementById('epsilonDecayLabel');
+                        if (label) label.textContent = `Exploration Decay: ${value.toFixed(3)}`;
                         this.epsilonDecay = value;
                     };
                     
@@ -2555,6 +2890,28 @@
                 });
             }
             
+            initWelcomeDecryptedText() {
+                // Apply DecryptedText effect to all welcome screen text elements with 50ms speed on page load
+                const allTextElements = document.querySelectorAll('#welcomeScreen [data-decrypt]');
+                
+                allTextElements.forEach(element => {
+                    new DecryptedText(element, {
+                        speed: 50,
+                        maxIterations: 12,
+                        sequential: true,
+                        revealDirection: 'start',
+                        useOriginalCharsOnly: true,
+                        animateOn: 'view'  // Trigger on page load when element comes into view
+                    });
+                });
+            }
+            
+            
+            
+
+
+
+            
             initializeInlineEditing() {
                 // Add inline editing to all editable elements
                 document.addEventListener('click', (e) => {
@@ -2600,8 +2957,13 @@
                             newValue = originalValue;
                         } else {
                             const min = parseFloat(element.dataset.min || 0);
-                            const max = parseFloat(element.dataset.max || 1000);
-                            newValue = Math.max(min, Math.min(max, numValue)).toString();
+                            const maxAttr = element.dataset.max;
+                            if (maxAttr) {
+                                const max = parseFloat(maxAttr);
+                                newValue = Math.max(min, Math.min(max, numValue)).toString();
+                            } else {
+                                newValue = Math.max(min, numValue).toString();
+                            }
                         }
                     }
                     
@@ -2687,6 +3049,45 @@
                         }
                     }
                 }
+            }
+            
+            updateAgentCounts() {
+                // Get new counts from UI
+                this.catCount = parseInt(document.getElementById('catCount').value) || 1;
+                this.mouseCount = parseInt(document.getElementById('mouseCount').value) || 1;
+                
+                // Resize agent arrays
+                this.cats = Array(this.catCount).fill().map((_, i) => ({
+                    x: 0, y: 0, id: i, rotation: i * 90  // Spread initial rotations
+                }));
+                
+                this.mice = Array(this.mouseCount).fill().map((_, i) => ({
+                    x: 0, y: 0, id: i, rotation: (i * 90 + 180) % 360  // Different from cats
+                }));
+                
+                // Resize Q-table arrays
+                while (this.catQTables.length < this.catCount) {
+                    this.catQTables.push({});
+                }
+                while (this.mouseQTables.length < this.mouseCount) {
+                    this.mouseQTables.push({});
+                }
+                
+                // Trim excess Q-tables
+                this.catQTables = this.catQTables.slice(0, this.catCount);
+                this.mouseQTables = this.mouseQTables.slice(0, this.mouseCount);
+                
+                // Maintain legacy compatibility
+                this.catPos = this.cats[0];
+                this.mousePos = this.mice[0];
+                this.catQTable = this.catQTables[0];
+                this.mouseQTable = this.mouseQTables[0];
+                
+                // Reinitialize positions
+                this.placeAgentsAndObstacles();
+                this.renderGrid();
+                
+                console.log(`Updated to ${this.catCount} cats and ${this.mouseCount} mice`);
             }
 
             initializeDraggablePanels() {
@@ -2775,21 +3176,28 @@
             updateSpeedDisplay() {
                 const speedInput = document.getElementById('simulationSpeed');
                 const display = document.getElementById('speedDisplay');
+                const label = document.getElementById('simulationSpeedLabel');
                 
                 if (!speedInput || !display) return;
                 
                 const speed = parseInt(speedInput.value);
                 display.textContent = speed + 'ms';
+                if (label) label.textContent = `Simulation Speed: ${speed}ms`;
             }
             
             updateVisionAngleDisplay() {
                 const angle = document.getElementById('visionAngle').value;
                 const display = document.getElementById('visionAngleDisplay');
+                const label = document.getElementById('visionAngleLabel');
                 if (display) display.textContent = `${angle}°`;
+                if (label) label.textContent = `Vision Cone Angle: ${angle}°`;
             }
             
             updateCatRotationDisplay() {
-                const rotation = parseInt(document.getElementById('catRotation').value);
+                const rotationElement = document.getElementById('catRotation');
+                if (!rotationElement) return; // Prevent error if element doesn't exist
+                
+                const rotation = parseInt(rotationElement.value);
                 const display = document.getElementById('catRotationDisplay');
                 const directions = {
                     0: "Right", 45: "Down-Right", 90: "Down", 135: "Down-Left",
@@ -2802,7 +3210,10 @@
             }
             
             updateMouseRotationDisplay() {
-                const rotation = parseInt(document.getElementById('mouseRotation').value);
+                const rotationElement = document.getElementById('mouseRotation');
+                if (!rotationElement) return; // Prevent error if element doesn't exist
+                
+                const rotation = parseInt(rotationElement.value);
                 const display = document.getElementById('mouseRotationDisplay');
                 const directions = {
                     0: "Right", 45: "Down-Right", 90: "Down", 135: "Down-Left",
@@ -2817,9 +3228,11 @@
             updateCatLearningRate() {
                 const slider = document.getElementById('catLearningRateSlider');
                 const display = document.getElementById('catLearningRateDisplay');
+                const label = document.getElementById('catLearningRateLabel');
                 if (slider && display) {
                     const value = parseFloat(slider.value);
                     display.textContent = value.toFixed(2);
+                    if (label) label.textContent = `Learning Rate: ${value.toFixed(2)}`;
                     this.catLearningRate = value;
                 }
             }
@@ -2827,9 +3240,11 @@
             updateCatEpsilon() {
                 const slider = document.getElementById('catEpsilonSlider');
                 const display = document.getElementById('catEpsilonDisplay');
+                const label = document.getElementById('catEpsilonLabel');
                 if (slider && display) {
                     const value = parseFloat(slider.value);
                     display.textContent = value.toFixed(2);
+                    if (label) label.textContent = `Exploration Rate: ${value.toFixed(2)}`;
                     this.catEpsilon = value;
                     this.catInitialEpsilon = value;
                 }
@@ -2838,9 +3253,11 @@
             updateMouseLearningRate() {
                 const slider = document.getElementById('mouseLearningRateSlider');
                 const display = document.getElementById('mouseLearningRateDisplay');
+                const label = document.getElementById('mouseLearningRateLabel');
                 if (slider && display) {
                     const value = parseFloat(slider.value);
                     display.textContent = value.toFixed(2);
+                    if (label) label.textContent = `Learning Rate: ${value.toFixed(2)}`;
                     this.mouseLearningRate = value;
                 }
             }
@@ -2848,9 +3265,11 @@
             updateMouseEpsilon() {
                 const slider = document.getElementById('mouseEpsilonSlider');
                 const display = document.getElementById('mouseEpsilonDisplay');
+                const label = document.getElementById('mouseEpsilonLabel');
                 if (slider && display) {
                     const value = parseFloat(slider.value);
                     display.textContent = value.toFixed(2);
+                    if (label) label.textContent = `Exploration Rate: ${value.toFixed(2)}`;
                     this.mouseEpsilon = value;
                     this.mouseInitialEpsilon = value;
                 }
@@ -2859,12 +3278,40 @@
             updateRewardParameter(paramName) {
                 const slider = document.getElementById(paramName + 'Slider');
                 const display = document.getElementById(paramName + 'Display');
+                const label = document.getElementById(paramName + 'Label');
                 if (slider && display) {
                     const value = parseFloat(slider.value);
                     display.textContent = value;
+                    
+                    // Update the label with appropriate formatting
+                    if (label) {
+                        const formattedValue = value >= 0 ? `+${value}` : `${value}`;
+                        const labelText = this.getRewardLabelText(paramName, formattedValue);
+                        label.textContent = labelText;
+                    }
+                    
                     this.rewards[paramName] = value;
                     this.updateWelcomeRewardDisplay();
                 }
+            }
+            
+            getRewardLabelText(paramName, formattedValue) {
+                const labelMap = {
+                    'catWin': `Win Bonus: ${formattedValue}`,
+                    'catHunting': `Hunting (Visible): ${formattedValue}`,
+                    'catExploration': `Exploration: ${formattedValue}`,
+                    'catRetreating': `Retreating: ${formattedValue}`,
+                    'catStandingStill': `Standing Still: ${formattedValue}`,
+                    'catFailure': `Failure Penalty: ${formattedValue}`,
+                    'mouseSurvival': `Survival Bonus: ${formattedValue}`,
+                    'mouseCaught': `Caught Penalty: ${formattedValue}`,
+                    'mouseStrategicEscape': `Strategic Escape: ${formattedValue}`,
+                    'mouseBlindEscape': `Blind Escape: ${formattedValue}`,
+                    'mouseApproachingDanger': `Approaching Danger: ${formattedValue}`,
+                    'mouseStandingStillVisible': `Standing Still (Visible): ${formattedValue}`,
+                    'mouseMovingTowardDanger': `Moving Toward Danger: ${formattedValue}`
+                };
+                return labelMap[paramName] || `${paramName}: ${formattedValue}`;
             }
             
             updateWelcomeRewardDisplay() {
@@ -2893,28 +3340,34 @@
 
             updateFontSize() {
                 const fontSize = parseFloat(document.getElementById('fontSize').value);
-                const display = document.getElementById('fontSizeDisplay');
                 const grid = document.getElementById('gameGrid');
                 
-                display.textContent = fontSize.toFixed(1) + 'rem';
+                // Update the inline-editable span instead of a separate display element
+                const paramValue = document.querySelector('[data-input-id="fontSize"]');
+                if (paramValue) paramValue.textContent = fontSize.toFixed(1);
+                
                 grid.style.fontSize = fontSize + 'rem';
             }
 
             updateHorizontalSpacing() {
                 const spacing = parseFloat(document.getElementById('horizontalSpacing').value);
-                const display = document.getElementById('horizontalSpacingDisplay');
                 const grid = document.getElementById('gameGrid');
                 
-                display.textContent = spacing.toFixed(1) + 'rem';
+                // Update the inline-editable span instead of a separate display element
+                const paramValue = document.querySelector('[data-input-id="horizontalSpacing"]');
+                if (paramValue) paramValue.textContent = spacing.toFixed(1);
+                
                 grid.style.letterSpacing = spacing + 'rem';
             }
 
             updateVerticalSpacing() {
                 const spacing = parseFloat(document.getElementById('verticalSpacing').value);
-                const display = document.getElementById('verticalSpacingDisplay');
                 const grid = document.getElementById('gameGrid');
                 
-                display.textContent = spacing.toFixed(1) + 'rem';
+                // Update the inline-editable span instead of a separate display element
+                const paramValue = document.querySelector('[data-input-id="verticalSpacing"]');
+                if (paramValue) paramValue.textContent = spacing.toFixed(1);
+                
                 grid.style.lineHeight = spacing + 'rem';
             }
             
@@ -2925,7 +3378,7 @@
                 // Get all CRT parameters
                 const scanlines = this.getCRTValue('crtScanlines', 0.9);
                 const glow = this.getCRTValue('crtGlow', 0.7);
-                const contrast = this.getCRTValue('crtContrast', 0.9);
+                const contrast = this.getCRTValue('crtContrast', 1);
                 const brightness = this.getCRTValue('crtBrightness', 1.05);
                 const saturation = this.getCRTValue('crtSaturation', 1.1);
                 const flicker = this.getCRTValue('crtFlicker', 0.8);
@@ -2933,7 +3386,7 @@
                 const warp = this.getCRTValue('crtWarp', 0);
                 const chromaticAberration = this.getCRTValue('crtChromaticAberration', 8);
                 const distortion = this.getCRTValue('crtDistortion', 7.5);
-                const vignette = this.getCRTValue('crtVignette', 3.5);
+                const vignette = this.getCRTValue('crtVignette', 5);
                 
                 // Update displays
                 this.updateCRTDisplays({
@@ -3030,25 +3483,7 @@
                     saturate(${params.saturation})
                 `;
                 
-                // Apply fisheye warp effect
-                if (params.warp > 0) {
-                    const fisheyeIntensity = params.warp * 0.05;
-                    const borderRadius = 15 + (params.warp * 8);
-                    const perspectiveValue = 1000 - (params.warp * 50);
-                    const scaleValue = 1 + (params.warp * 0.02);
-                    
-                    container.classList.add('crt-monitor-curve');
-                    container.style.transform = `
-                        perspective(${perspectiveValue}px) 
-                        rotateX(${fisheyeIntensity * 3}deg) 
-                        scale(${scaleValue})
-                    `;
-                    container.style.borderRadius = `${borderRadius}px ${borderRadius}px ${borderRadius + 5}px ${borderRadius + 5}px`;
-                } else {
-                    container.classList.remove('crt-monitor-curve');
-                    container.style.transform = 'none';
-                    container.style.borderRadius = '0px';
-                }
+                // Removed fisheye warp effect
             }
             
             startCRTShaderAnimation(canvas, params) {
@@ -3137,6 +3572,21 @@
                 const minOpacity = parseFloat(document.getElementById('textPressureMinOpacity').value);
                 const maxOpacity = parseFloat(document.getElementById('textPressureMaxOpacity').value);
                 
+                // Update display elements
+                const rangeDisplay = document.getElementById('rangeDisplay');
+                const smoothingDisplay = document.getElementById('smoothingDisplay');
+                const minWeightDisplay = document.getElementById('minWeightDisplay');
+                const maxWeightDisplay = document.getElementById('maxWeightDisplay');
+                const minOpacityDisplay = document.getElementById('minOpacityDisplay');
+                const maxOpacityDisplay = document.getElementById('maxOpacityDisplay');
+                
+                if (rangeDisplay) rangeDisplay.textContent = `${range}px`;
+                if (smoothingDisplay) smoothingDisplay.textContent = smoothing.toString();
+                if (minWeightDisplay) minWeightDisplay.textContent = minWeight.toString();
+                if (maxWeightDisplay) maxWeightDisplay.textContent = maxWeight.toString();
+                if (minOpacityDisplay) minOpacityDisplay.textContent = minOpacity.toFixed(1);
+                if (maxOpacityDisplay) maxOpacityDisplay.textContent = maxOpacity.toFixed(1);
+                
                 // Text Effects
                 const boldEffect = document.getElementById('textPressureBold').checked;
                 const italicEffect = document.getElementById('textPressureItalic').checked;
@@ -3146,15 +3596,12 @@
                 const scaleMin = parseFloat(document.getElementById('textPressureScaleMin').value);
                 const scaleMax = parseFloat(document.getElementById('textPressureScaleMax').value);
                 
-                // Update displays
-                document.getElementById('rangeDisplay').textContent = range + 'px';
-                document.getElementById('smoothingDisplay').textContent = smoothing;
-                document.getElementById('minWeightDisplay').textContent = minWeight;
-                document.getElementById('maxWeightDisplay').textContent = maxWeight;
-                document.getElementById('minOpacityDisplay').textContent = minOpacity.toFixed(1);
-                document.getElementById('maxOpacityDisplay').textContent = maxOpacity.toFixed(1);
-                document.getElementById('scaleMinDisplay').textContent = scaleMin.toFixed(1);
-                document.getElementById('scaleMaxDisplay').textContent = scaleMax.toFixed(1);
+                // Update scale displays
+                const scaleMinDisplay = document.getElementById('scaleMinDisplay');
+                const scaleMaxDisplay = document.getElementById('scaleMaxDisplay');
+                
+                if (scaleMinDisplay) scaleMinDisplay.textContent = scaleMin.toFixed(1);
+                if (scaleMaxDisplay) scaleMaxDisplay.textContent = scaleMax.toFixed(1);
                 
                 // Store settings globally for the text pressure effect
                 this.textPressureSettings = {
@@ -3362,10 +3809,8 @@
                             x: Math.floor(Math.random() * (this.gridWidth - 2)) + 1,
                             y: Math.floor(Math.random() * (this.gridHeight - 2)) + 1
                         };
-                    } while (
-                        (this.mousePos.x === this.catPos.x && this.mousePos.y === this.catPos.y) ||
-                        this.obstacles.some(obs => obs.x === this.mousePos.x && obs.y === this.mousePos.y)
-                    );
+                    } while (this.obstacles.some(obs => obs.x === this.mousePos.x && obs.y === this.mousePos.y) ||
+                             (this.catPos.x === this.mousePos.x && this.catPos.y === this.mousePos.y));
                 }
                 
                 // Update grid
@@ -3380,8 +3825,9 @@
                     }
                 }
                 
-                // Add vision if enabled
-                if (document.getElementById('toggleVision').checked) {
+                // Add vision if enabled (skip for performance if disabled)
+                const visionEnabled = document.getElementById('toggleVision').checked;
+                if (visionEnabled) {
                     this.addVisionToGrid();
                 }
                 
@@ -3401,22 +3847,22 @@
                 const catVision = parseInt(document.getElementById('predatorVision').value);
                 const mouseVision = parseInt(document.getElementById('preyVision').value);
                 
-                // Get vision cells for both agents
+                // Get vision cells for single agents
                 const catVisibleCells = this.getVisibleCells(this.catPos, catVision, 'cat');
                 const mouseVisibleCells = this.getVisibleCells(this.mousePos, mouseVision, 'mouse');
                 
-                // Create sets for efficient lookup
+                // Create sets for efficient lookup  
                 const catVisionSet = new Set(catVisibleCells.map(cell => `${cell.x},${cell.y}`));
                 const mouseVisionSet = new Set(mouseVisibleCells.map(cell => `${cell.x},${cell.y}`));
                 
-                // Add cat vision (use ? for both cat and mouse vision)
+                // Add cat vision
                 catVisibleCells.forEach(cell => {
                     if (this.grid[cell.y][cell.x] === (this.characterMap?.empty || '·')) {
                         this.grid[cell.y][cell.x] = this.characterMap?.unknown || '?';
                     }
                 });
                 
-                // Add mouse vision (also use ?, but check for overlap)
+                // Add mouse vision (check for overlap)
                 mouseVisibleCells.forEach(cell => {
                     const cellKey = `${cell.x},${cell.y}`;
                     if (this.grid[cell.y][cell.x] === (this.characterMap?.empty || '·')) {
@@ -3508,6 +3954,12 @@
             }
 
             hasLineOfSight(from, to) {
+                // Performance optimization: Create obstacle lookup set if not cached
+                if (!this.obstacleSet || this.obstacleSetLastUpdate !== this.obstacles.length) {
+                    this.obstacleSet = new Set(this.obstacles.map(obs => `${obs.x},${obs.y}`));
+                    this.obstacleSetLastUpdate = this.obstacles.length;
+                }
+                
                 // Use Bresenham's line algorithm to check line of sight
                 const dx = Math.abs(to.x - from.x);
                 const dy = Math.abs(to.y - from.y);
@@ -3530,8 +3982,8 @@
                         y += sy;
                     }
                     
-                    // If we hit an obstacle before reaching the target, vision is blocked
-                    if (this.obstacles.some(obs => obs.x === x && obs.y === y)) {
+                    // If we hit an obstacle before reaching the target, vision is blocked (optimized lookup)
+                    if (this.obstacleSet.has(`${x},${y}`)) {
                         return false;
                     }
                 }
@@ -3542,23 +3994,174 @@
             renderGrid() {
                 if (!document.getElementById('toggleRender').checked) return;
                 
-                let gridText = '';
-                for (let y = 0; y < this.gridHeight; y++) {
-                    for (let x = 0; x < this.gridWidth; x++) {
-                        gridText += this.grid[y][x];
+                const gridElement = document.getElementById('gameGrid');
+                
+                // Always use HTML rendering for mouse proximity effects
+                {
+                    let maxCatVisits = 1, maxMouseVisits = 1;
+                    
+                    // Only calculate heat map values if heat map is actually enabled
+                    if (this.showHeatMap) {
+                        // Only recalculate max values every 100 renders for performance
+                        if (!this.heatMapCache || this.renderCount % 100 === 0) {
+                            const allCatVisits = Object.values(this.catHeatMap);
+                            const allMouseVisits = Object.values(this.mouseHeatMap);
+                            this.heatMapCache = {
+                                maxCatVisits: Math.max(...allCatVisits, 1),
+                                maxMouseVisits: Math.max(...allMouseVisits, 1)
+                            };
+                        }
+                        
+                        // Use cached values
+                        maxCatVisits = this.heatMapCache.maxCatVisits;
+                        maxMouseVisits = this.heatMapCache.maxMouseVisits;
                     }
-                    gridText += '\n';
+                    
+                    // Create HTML with heat map backgrounds
+                    let gridHTML = '<pre style="margin: 0; font-family: inherit; line-height: inherit;">';
+                    for (let y = 0; y < this.gridHeight; y++) {
+                        for (let x = 0; x < this.gridWidth; x++) {
+                            // Only apply heat map colors if heat maps are enabled
+                            let backgroundColor = '';
+                            if (this.showHeatMap) {
+                                const key = `${x},${y}`;
+                                const catVisits = this.catHeatMap[key] || 0;
+                                const mouseVisits = this.mouseHeatMap[key] || 0;
+                                
+                                // Use the agent with more visits for color
+                                if (catVisits > mouseVisits) {
+                                    backgroundColor = this.getHeatMapColor(catVisits, maxCatVisits, 'cat');
+                                } else if (mouseVisits > 0) {
+                                    backgroundColor = this.getHeatMapColor(mouseVisits, maxMouseVisits, 'mouse');
+                                }
+                            }
+                            
+                            const char = this.grid[y][x];
+                            const style = backgroundColor ? `background-color: ${backgroundColor}` : '';
+                            
+                            // Determine character type for special effects
+                            let charClass = 'grid-char';
+                            if (char === (this.characterMap?.cat || 'C') || char.startsWith('C')) {
+                                charClass += ' char-cat';
+                            } else if (char === (this.characterMap?.mouse || 'M') || char.startsWith('M')) {
+                                charClass += ' char-mouse';
+                            } else if (char === (this.characterMap?.obstacle || 'O')) {
+                                charClass += ' char-obstacle';
+                            } else if (char === (this.characterMap?.unknown || '?')) {
+                                charClass += ' char-vision';
+                            } else if (char === (this.characterMap?.error || '!')) {
+                                charClass += ' char-collision';
+                            }
+                            
+                            gridHTML += `<span class="${charClass}" style="${style}" data-x="${x}" data-y="${y}">${char}</span>`;
+                        }
+                        if (y < this.gridHeight - 1) gridHTML += '\n';
+                    }
+                    gridHTML += '</pre>';
+                    
+                    gridElement.innerHTML = gridHTML;
+                    
+                    // Initialize mouse proximity effects
+                    this.initializeMouseProximityEffects();
                 }
                 
-                document.getElementById('gameGrid').textContent = gridText;
+                // Increment render counter for optimization timing
+                this.renderCount = (this.renderCount || 0) + 1;
+            }
+
+            initializeMouseProximityEffects() {
+                const gridElement = document.getElementById('gameGrid');
+                if (!gridElement) return;
+
+                // Remove existing event listeners
+                if (this.proximityMouseHandler) {
+                    gridElement.removeEventListener('mousemove', this.proximityMouseHandler);
+                    gridElement.removeEventListener('mouseleave', this.proximityMouseLeaveHandler);
+                }
+
+                // Mouse proximity effect parameters
+                const radius = 80; // Effect radius in pixels
+                const maxScale = 1.4; // Maximum scale factor
+                const maxGlow = 2.0; // Maximum glow intensity
+
+                this.proximityMouseHandler = (event) => {
+                    const gridRect = gridElement.getBoundingClientRect();
+                    const mouseX = event.clientX - gridRect.left;
+                    const mouseY = event.clientY - gridRect.top;
+
+                    // Cache character elements for performance
+                    const charElements = gridElement.querySelectorAll('.grid-char');
+                    
+                    charElements.forEach(charEl => {
+                        const charRect = charEl.getBoundingClientRect();
+                        const charCenterX = charRect.left + charRect.width / 2 - gridRect.left;
+                        const charCenterY = charRect.top + charRect.height / 2 - gridRect.top;
+
+                        // Calculate distance from mouse to character center
+                        const distance = Math.sqrt(
+                            Math.pow(mouseX - charCenterX, 2) + Math.pow(mouseY - charCenterY, 2)
+                        );
+
+                        if (distance <= radius) {
+                            // Calculate proximity factor (1 at center, 0 at radius)
+                            const proximityFactor = Math.max(0, 1 - (distance / radius));
+                            
+                            // Apply different falloff curves for different effects
+                            const exponentialFactor = Math.pow(proximityFactor, 2);
+                            const linearFactor = proximityFactor;
+                            
+                            // Calculate effect values
+                            const scale = 1 + (exponentialFactor * (maxScale - 1));
+                            const intensity = 0.8 + (linearFactor * 0.2);
+                            const glow = linearFactor * maxGlow;
+                            const weight = exponentialFactor;
+                            
+                            // Apply effects
+                            charEl.classList.add('proximity-active');
+                            charEl.style.setProperty('--char-scale', scale.toFixed(3));
+                            charEl.style.setProperty('--char-intensity', intensity.toFixed(3));
+                            charEl.style.setProperty('--char-glow', glow.toFixed(3));
+                            charEl.style.setProperty('--char-weight', weight.toFixed(3));
+                        } else {
+                            // Reset character to default state
+                            charEl.classList.remove('proximity-active');
+                            charEl.style.removeProperty('--char-scale');
+                            charEl.style.removeProperty('--char-intensity');
+                            charEl.style.removeProperty('--char-glow');
+                            charEl.style.removeProperty('--char-weight');
+                        }
+                    });
+                };
+
+                this.proximityMouseLeaveHandler = () => {
+                    // Reset all characters when mouse leaves grid
+                    const charElements = gridElement.querySelectorAll('.grid-char');
+                    charElements.forEach(charEl => {
+                        charEl.classList.remove('proximity-active');
+                        charEl.style.removeProperty('--char-scale');
+                        charEl.style.removeProperty('--char-intensity');
+                        charEl.style.removeProperty('--char-glow');
+                        charEl.style.removeProperty('--char-weight');
+                    });
+                };
+
+                // Add event listeners
+                gridElement.addEventListener('mousemove', this.proximityMouseHandler);
+                gridElement.addEventListener('mouseleave', this.proximityMouseLeaveHandler);
             }
 
             getState(agentPos, targetPos) {
-                const dx = targetPos.x - agentPos.x;
-                const dy = targetPos.y - agentPos.y;
-                const distance = Math.abs(dx) + Math.abs(dy);
+                // Performance optimization: Use relative positions and quantized distances
+                // This reduces state space from potentially millions to thousands
+                const dx = Math.max(-10, Math.min(10, targetPos.x - agentPos.x)); // Clamp to [-10, 10]
+                const dy = Math.max(-10, Math.min(10, targetPos.y - agentPos.y)); // Clamp to [-10, 10]
+                const distance = Math.min(20, Math.abs(dx) + Math.abs(dy)); // Cap distance at 20
                 
-                return `${agentPos.x},${agentPos.y},${dx},${dy},${distance}`;
+                // Quantize agent position to reduce state space (divide grid into 8x4 regions)
+                const regionX = Math.floor(agentPos.x / 8);
+                const regionY = Math.floor(agentPos.y / 8);
+                
+                return `${regionX},${regionY},${dx},${dy},${distance}`;
             }
 
             getAction(agent, state) {
@@ -3682,6 +4285,198 @@
                 const newQ = currentQ + learningRate * (reward + this.discountFactor * maxNextQ - currentQ);
                 
                 qTable[state][action] = newQ;
+                
+                // Performance optimization: Limit Q-table size and cleanup old/unused states
+                const maxStates = 50000; // Limit to prevent excessive memory usage
+                if (Object.keys(qTable).length > maxStates && Math.random() < 0.001) { // 0.1% chance to clean
+                    this.cleanupQTable(agent, maxStates);
+                }
+            }
+            
+            cleanupQTable(agent, maxStates) {
+                const qTable = agent === 'cat' ? this.catQTable : this.mouseQTable;
+                const states = Object.keys(qTable);
+                
+                if (states.length <= maxStates) return;
+                
+                // Remove states with low Q-values (likely unused or poor strategies)
+                const statesWithValues = states.map(state => ({
+                    state,
+                    maxQ: Math.max(...Object.values(qTable[state]))
+                }));
+                
+                // Sort by max Q-value and keep top 80% of states
+                statesWithValues.sort((a, b) => b.maxQ - a.maxQ);
+                const keepCount = Math.floor(maxStates * 0.8);
+                const statesToKeep = statesWithValues.slice(0, keepCount);
+                
+                // Create new Q-table with only the best states
+                const newQTable = {};
+                statesToKeep.forEach(({state}) => {
+                    newQTable[state] = qTable[state];
+                });
+                
+                if (agent === 'cat') {
+                    this.catQTable = newQTable;
+                } else {
+                    this.mouseQTable = newQTable;
+                }
+                
+                console.log(`Cleaned up ${agent} Q-table: ${states.length} -> ${Object.keys(newQTable).length} states`);
+            }
+            
+            // Multi-agent helper methods
+            getMultiAgentState(agentPos, targetPos, agentType) {
+                // Enhanced state representation for multi-agent scenarios
+                const dx = Math.max(-10, Math.min(10, targetPos.x - agentPos.x));
+                const dy = Math.max(-10, Math.min(10, targetPos.y - agentPos.y));
+                const distance = Math.min(20, Math.abs(dx) + Math.abs(dy));
+                
+                // Quantize position to reduce state space
+                const regionX = Math.floor(agentPos.x / 8);
+                const regionY = Math.floor(agentPos.y / 8);
+                
+                // Add agent type and team size information
+                const teamCount = agentType === 'cat' ? this.catCount : this.mouseCount;
+                const enemyCount = agentType === 'cat' ? this.mouseCount : this.catCount;
+                
+                return `${regionX},${regionY},${dx},${dy},${distance},${teamCount},${enemyCount}`;
+            }
+            
+            findNearestMouse(catPos, aliveMice) {
+                if (aliveMice.length === 0) return null;
+                
+                let nearest = null;
+                let minDistance = Infinity;
+                
+                aliveMice.forEach(mouseIndex => {
+                    const mouse = this.mice[mouseIndex];
+                    const distance = Math.abs(catPos.x - mouse.x) + Math.abs(catPos.y - mouse.y);
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        nearest = mouse;
+                    }
+                });
+                
+                return nearest;
+            }
+            
+            findNearestCat(mousePos) {
+                if (this.cats.length === 0) return null;
+                
+                let nearest = null;
+                let minDistance = Infinity;
+                
+                this.cats.forEach(cat => {
+                    const distance = Math.abs(mousePos.x - cat.x) + Math.abs(mousePos.y - cat.y);
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        nearest = cat;
+                    }
+                });
+                
+                return nearest;
+            }
+            
+            checkMultiAgentCaptures(aliveMice) {
+                const capturedMice = [];
+                
+                aliveMice.forEach(mouseIndex => {
+                    const mouse = this.mice[mouseIndex];
+                    
+                    // Check if any cat caught this mouse
+                    this.cats.forEach(cat => {
+                        if (cat.x === mouse.x && cat.y === mouse.y) {
+                            capturedMice.push(mouseIndex);
+                        }
+                    });
+                });
+                
+                return capturedMice;
+            }
+            
+            getCatWinCondition() {
+                // Balanced win conditions based on team sizes
+                if (this.catCount === 1 && this.mouseCount === 1) return 1;  // 1v1: catch the mouse
+                if (this.catCount === 1 && this.mouseCount === 2) return 2;  // 1v2: catch both mice
+                if (this.catCount === 1 && this.mouseCount === 3) return 3;  // 1v3: catch all mice
+                if (this.catCount === 2 && this.mouseCount === 1) return 1;  // 2v1: catch the mouse
+                if (this.catCount === 2 && this.mouseCount === 2) return 2;  // 2v2: catch both mice
+                if (this.catCount === 2 && this.mouseCount === 3) return 2;  // 2v3: catch 2 mice
+                if (this.catCount === 3 && this.mouseCount === 2) return 2;  // 3v2: catch both mice
+                if (this.catCount === 3 && this.mouseCount === 3) return 2;  // 3v3: catch 2 mice
+                
+                // Default: catch all mice
+                return this.mouseCount;
+            }
+            
+            calculateMultiAgentReward(agentType, oldPos, newPos, enemies) {
+                // Optimized multi-agent rewards with early returns
+                if (agentType === 'cat') {
+                    // Cat rewards: hunting bonus for getting closer to any mouse
+                    let bestReward = this.rewards.catExploration; // Default reward
+                    
+                    // Early exit if no enemies
+                    if (enemies.length === 0) return bestReward;
+                    
+                    for (let i = 0; i < enemies.length; i++) {
+                        const enemyIndex = enemies[i];
+                        const enemy = this.mice[enemyIndex];
+                        if (!enemy) continue;
+                        
+                        const oldDistance = Math.abs(oldPos.x - enemy.x) + Math.abs(oldPos.y - enemy.y);
+                        const newDistance = Math.abs(newPos.x - enemy.x) + Math.abs(newPos.y - enemy.y);
+                        
+                        if (newDistance < oldDistance) {
+                            bestReward = this.rewards.catHunting;
+                            break; // Early exit on first hunting reward found
+                        }
+                    }
+                    return bestReward;
+                } else {
+                    // Mouse rewards: escape bonus for getting farther from nearest cat
+                    const nearestCat = this.findNearestCat(newPos);
+                    if (!nearestCat) return this.rewards.mouseBlindEscape;
+                    
+                    const oldDistance = Math.abs(oldPos.x - nearestCat.x) + Math.abs(oldPos.y - nearestCat.y);
+                    const newDistance = Math.abs(newPos.x - nearestCat.x) + Math.abs(newPos.y - nearestCat.y);
+                    
+                    if (newDistance > oldDistance) {
+                        return this.rewards.mouseStrategicEscape;
+                    } else if (newDistance < oldDistance) {
+                        return this.rewards.mouseApproachingDanger;
+                    }
+                    return this.rewards.mouseBlindEscape;
+                }
+            }
+            
+            chooseAgentRotation(agentType, agentIndex) {
+                // Simplified rotation - can be enhanced with strategic logic
+                if (agentType === 'cat') {
+                    const cat = this.cats[agentIndex];
+                    const nearestMouse = this.findNearestMouse(cat, this.mice.map((_, i) => i));
+                    if (nearestMouse) {
+                        const dx = nearestMouse.x - cat.x;
+                        const dy = nearestMouse.y - cat.y;
+                        return Math.atan2(dy, dx) * 180 / Math.PI;
+                    }
+                } else {
+                    const mouse = this.mice[agentIndex];
+                    const nearestCat = this.findNearestCat(mouse);
+                    if (nearestCat) {
+                        // 30% chance to look away from cat (evasion tactic)
+                        if (Math.random() < 0.3) {
+                            const dx = nearestCat.x - mouse.x;
+                            const dy = nearestCat.y - mouse.y;
+                            return (Math.atan2(dy, dx) * 180 / Math.PI + 180) % 360;
+                        } else {
+                            const dx = nearestCat.x - mouse.x;
+                            const dy = nearestCat.y - mouse.y;
+                            return Math.atan2(dy, dx) * 180 / Math.PI;
+                        }
+                    }
+                }
+                return Math.random() * 360; // Random if no target
             }
 
             moveAgent(pos, action) {
@@ -3755,8 +4550,12 @@
                 
                 return 0;
             }
+            
+            // Multi-agent functionality removed
 
             async runEpisode() {
+                // Single-agent logic
+                const episodeStartTime = Date.now();
                 this.placeAgentsAndObstacles();
                 const maxSteps = parseInt(document.getElementById('stepCount').value);
                 let episodeSteps = 0;
@@ -3783,6 +4582,10 @@
                     this.catPos = this.moveAgent(this.catPos, catAction);
                     this.mousePos = this.moveAgent(this.mousePos, mouseAction);
                     
+                    // Update heat maps
+                    this.updateHeatMap('cat', this.catPos.x, this.catPos.y);
+                    this.updateHeatMap('mouse', this.mousePos.x, this.mousePos.y);
+                    
                     // Check if caught
                     const caught = this.catPos.x === this.mousePos.x && this.catPos.y === this.mousePos.y;
                     
@@ -3802,10 +4605,14 @@
                     this.updateQTable('cat', catState, catAction, catReward, newCatState);
                     this.updateQTable('mouse', mouseState, mouseAction, mouseReward, newMouseState);
                     
-                    // Update display
+                    // Update display with throttling for performance
                     this.updateGridDisplay();
-                    this.renderGrid();
-                    this.updateStats();
+                    
+                    // Throttle rendering during fast training (only render every 10th step)
+                    if (step % 10 === 0 || parseInt(document.getElementById('simulationSpeed').value) > 50) {
+                        this.renderGrid();
+                        this.updateStats();
+                    }
                     
                     // Check if episode ended
                     if (caught) {
@@ -3813,9 +4620,16 @@
                         break;
                     }
                     
-                    // Add delay based on speed setting
+                    // Add delay based on speed setting and render mode
                     const speed = parseInt(document.getElementById('simulationSpeed').value);
-                    if (speed < 500) {
+                    const renderEnabled = document.getElementById('toggleRender').checked;
+                    
+                    if (!renderEnabled) {
+                        // Turbo mode: minimal delays when rendering is disabled
+                        if (step % 100 === 0) {
+                            await new Promise(resolve => setTimeout(resolve, 1));
+                        }
+                    } else if (speed < 500) {
                         await new Promise(resolve => setTimeout(resolve, 500 - speed));
                     } else {
                         // For very fast speeds, yield control to prevent UI freeze
@@ -3842,6 +4656,9 @@
                 
                 this.totalSteps += episodeSteps;
                 
+                // Calculate episode duration
+                const episodeDuration = Date.now() - episodeStartTime;
+                
                 // Record episode data for chart
                 const catWinRate = (this.catWins / (this.currentEpisode + 1)) * 100;
                 const mouseWinRate = (this.mouseWins / (this.currentEpisode + 1)) * 100;
@@ -3849,15 +4666,23 @@
                 this.episodeData.push({
                     episode: this.currentEpisode + 1,
                     catWinRate: catWinRate,
-                    mouseWinRate: mouseWinRate
+                    mouseWinRate: mouseWinRate,
+                    duration: episodeDuration,
+                    steps: episodeSteps,
+                    catScore: this.currentCatScore,
+                    mouseScore: this.currentMouseScore
                 });
+                
+                // Performance optimization: Limit episode data to last 10,000 episodes
+                if (this.episodeData.length > 10000) {
+                    this.episodeData = this.episodeData.slice(-5000); // Keep last 5000 when limit reached
+                }
             }
 
             async startTraining() {
                 this.isTraining = true;
                 this.isPaused = false;
                 this.updateButtonStates(); // Update buttons when training starts
-                this.openDisplayControls(); // Always open display controls when training starts
                 
                 // Only reset stats if starting fresh (no existing Q-tables or episode data)
                 const isStartingFresh = Object.keys(this.catQTable).length === 0 && 
@@ -3913,6 +4738,7 @@
                     this.isTraining = false;
                     document.getElementById('trainingStatus').textContent = 'Completed';
                     this.lockParameters(false);
+                    this.updateButtonStates(); // Update button states when training completes
                     this.showPerformanceChart();
                 }
             }
@@ -3928,6 +4754,30 @@
                 document.getElementById('gridView').style.display = 'none';
                 document.getElementById('welcomeScreen').style.display = 'flex';
             }
+            
+            startNewTraining() {
+                // Reset all training data
+                this.catQTable = {};
+                this.mouseQTable = {};
+                this.episodeData = [];
+                this.catWins = 0;
+                this.mouseWins = 0;
+                this.episodeCount = 0;
+                this.catHeatMap = {};
+                this.mouseHeatMap = {};
+                
+                // Reset UI
+                document.getElementById('trainingStatus').textContent = 'Ready';
+                document.getElementById('episodeCount').textContent = '0';
+                document.getElementById('catWins').textContent = '0';
+                document.getElementById('mouseWins').textContent = '0';
+                document.getElementById('winRate').textContent = '0%';
+                document.getElementById('currentEpisode').textContent = '0';
+                
+                // Update button states and start training
+                this.updateButtonStates();
+                this.startTraining();
+            }
 
             continueTraining() {
                 if (this.isPaused) {
@@ -3936,6 +4786,48 @@
                 } else {
                     this.startTraining();
                 }
+            }
+
+            startNewRound() {
+                // Reset all training data for a fresh start
+                this.catQTable = {};
+                this.mouseQTable = {};
+                
+                
+                // Reset statistics
+                this.currentEpisode = 0;
+                this.currentStep = 0;
+                this.catWins = 0;
+                this.mouseWins = 0;
+                this.currentCatScore = 0;
+                this.currentMouseScore = 0;
+                this.episodeData = [];
+                this.totalSteps = 0;
+                
+                // Reset epsilon values to initial values
+                this.catEpsilon = this.catInitialEpsilon;
+                this.mouseEpsilon = this.mouseInitialEpsilon;
+                
+                // Clear performance caches
+                this.visionCache = null;
+                this.obstacleSet = null;
+                this.heatMapCache = null;
+                
+                
+                // Reset training status
+                this.isTraining = false;
+                this.isPaused = false;
+                document.getElementById('trainingStatus').textContent = 'Ready';
+                
+                // Update UI
+                this.updateStats();
+                this.lockParameters(false);
+                this.updateButtonStates(); // This will now show "Start" since all data is reset
+                
+                // Show welcome screen
+                document.getElementById('gridView').style.display = 'none';
+                document.getElementById('welcomeScreen').style.display = 'flex';
+                document.getElementById('chartContainer').style.display = 'none';
             }
 
             lockParameters(lock) {
@@ -3961,10 +4853,26 @@
             updateStats() {
                 document.getElementById('currentEpisode').textContent = this.currentEpisode + 1;
                 document.getElementById('currentStep').textContent = this.currentStep + 1;
+                
                 document.getElementById('catWins').textContent = this.catWins;
                 document.getElementById('mouseWins').textContent = this.mouseWins;
                 document.getElementById('currentCatScore').textContent = this.currentCatScore.toFixed(2);
                 document.getElementById('currentMouseScore').textContent = this.currentMouseScore.toFixed(2);
+                
+                // Update dynamic exploration rates
+                document.getElementById('currentCatEpsilon').textContent = `${(this.catEpsilon * 100).toFixed(1)}%`;
+                document.getElementById('currentMouseEpsilon').textContent = `${(this.mouseEpsilon * 100).toFixed(1)}%`;
+                
+                // Update knowledge size (total unique states learned)
+                const catStates = Object.keys(this.catQTable).length;
+                const mouseStates = Object.keys(this.mouseQTable).length;
+                const totalStates = catStates + mouseStates;
+                document.getElementById('knowledgeSize').textContent = `${totalStates} states`;
+                
+                // Calculate and display training progress percentage
+                const totalEpisodes = parseInt(document.getElementById('episodeCount').value) || 1000;
+                const progressPercentage = Math.min(((this.currentEpisode + 1) / totalEpisodes) * 100, 100);
+                document.getElementById('trainingProgress').textContent = `${progressPercentage.toFixed(1)}%`;
                 document.getElementById('obstacleCountDisplay').textContent = this.obstacles ? this.obstacles.length : 0;
                 
                 const totalGames = this.catWins + this.mouseWins;
@@ -3973,11 +4881,63 @@
                     document.getElementById('mouseWinRate').textContent = Math.round((this.mouseWins / totalGames) * 100) + '%';
                     document.getElementById('avgSteps').textContent = Math.round(this.totalSteps / totalGames);
                 }
+                
+                // Update performance prediction (only every 5 episodes for performance)
+                if (this.isTraining && this.currentEpisode % 5 === 0) {
+                    this.updatePerformancePrediction();
+                }
+            }
+
+            updateTrainingStatistics() {
+                if (this.episodeData.length === 0) return;
+                
+                // Calculate time statistics
+                const durations = this.episodeData.map(d => d.duration);
+                const steps = this.episodeData.map(d => d.steps);
+                const catScores = this.episodeData.map(d => d.catScore);
+                const mouseScores = this.episodeData.map(d => d.mouseScore);
+                
+                const fastestTime = Math.min(...durations);
+                const slowestTime = Math.max(...durations);
+                const averageTime = durations.reduce((sum, d) => sum + d, 0) / durations.length;
+                
+                const minSteps = Math.min(...steps);
+                const maxSteps = Math.max(...steps);
+                
+                const bestCatScore = Math.max(...catScores);
+                const bestMouseScore = Math.max(...mouseScores);
+                
+                const totalGames = this.catWins + this.mouseWins;
+                const catWinRate = totalGames > 0 ? Math.round((this.catWins / totalGames) * 100) : 0;
+                const mouseWinRate = totalGames > 0 ? Math.round((this.mouseWins / totalGames) * 100) : 0;
+                
+                // Format time function
+                const formatTime = (ms) => {
+                    if (ms < 1000) return `${ms}ms`;
+                    return `${(ms / 1000).toFixed(1)}s`;
+                };
+                
+                // Update HTML elements
+                document.getElementById('fastestRound').textContent = formatTime(fastestTime);
+                document.getElementById('slowestRound').textContent = formatTime(slowestTime);
+                document.getElementById('averageRound').textContent = formatTime(averageTime);
+                document.getElementById('minSteps').textContent = minSteps.toString();
+                document.getElementById('maxSteps').textContent = maxSteps.toString();
+                document.getElementById('totalEpisodes').textContent = this.episodeData.length.toString();
+                document.getElementById('bestCatScore').textContent = bestCatScore.toFixed(1);
+                document.getElementById('bestMouseScore').textContent = bestMouseScore.toFixed(1);
+                document.getElementById('finalWinRates').textContent = `C:${catWinRate}% M:${mouseWinRate}%`;
+                
+                // Show the statistics section
+                document.getElementById('chartStats').style.display = 'block';
             }
 
             showPerformanceChart() {
                 document.getElementById('gridView').style.display = 'none';
                 document.getElementById('chartContainer').style.display = 'block';
+                
+                // Calculate and display training statistics
+                this.updateTrainingStatistics();
                 
                 const ctx = document.getElementById('performanceChart').getContext('2d');
                 
@@ -4093,34 +5053,62 @@
                 const startButton = document.getElementById('startTraining');
                 const stopButton = document.getElementById('stopTraining');
                 const continueButton = document.getElementById('continueTraining');
+                const newTrainingButton = document.getElementById('newTraining');
+                const newRoundButton = document.getElementById('startNewRound');
                 
                 // Check if there's existing training data
                 const hasExistingData = Object.keys(this.catQTable).length > 0 || 
                                       Object.keys(this.mouseQTable).length > 0 || 
                                       this.currentEpisode > 0;
                 
+                // Check if training is completed (not just stopped)
+                const isTrainingCompleted = !this.isTraining && !this.isPaused && hasExistingData && 
+                                          document.getElementById('trainingStatus').textContent === 'Completed';
+                
                 if (this.isTraining) {
-                    // During training: hide Start/Continue, show Stop
+                    // During training: hide Start/Continue/NewTraining/NewRound, show Stop
                     startButton.style.display = 'none';
                     continueButton.style.display = 'none';
+                    newTrainingButton.style.display = 'none';
+                    newRoundButton.style.display = 'none';
                     stopButton.style.display = 'inline-block';
-                } else if (hasExistingData) {
-                    // Has data but not training: show Continue, hide Start/Stop
+                } else if (isTrainingCompleted) {
+                    // Training completed: show Continue and New Round, hide Start/Stop/NewTraining
                     startButton.style.display = 'none';
                     stopButton.style.display = 'none';
                     continueButton.style.display = 'inline-block';
+                    newTrainingButton.style.display = 'none';
+                    newRoundButton.style.display = 'inline-block';
+                    continueButton.textContent = 'Continue';
+                } else if (hasExistingData && this.isPaused) {
+                    // Has data and is stopped: show Continue and New Training, hide Start/Stop/NewRound
+                    startButton.style.display = 'none';
+                    stopButton.style.display = 'none';
+                    continueButton.style.display = 'inline-block';
+                    newTrainingButton.style.display = 'inline-block';
+                    newRoundButton.style.display = 'none';
+                    continueButton.textContent = 'Continue';
+                } else if (hasExistingData) {
+                    // Has data but not stopped: show Continue, hide others
+                    startButton.style.display = 'none';
+                    stopButton.style.display = 'none';
+                    continueButton.style.display = 'inline-block';
+                    newTrainingButton.style.display = 'none';
+                    newRoundButton.style.display = 'none';
                     continueButton.textContent = 'Continue';
                 } else {
-                    // No data and not training: show Start, hide Continue/Stop
+                    // No data and not training: show Start, hide others
                     startButton.style.display = 'inline-block';
                     stopButton.style.display = 'none';
                     continueButton.style.display = 'none';
+                    newTrainingButton.style.display = 'none';
+                    newRoundButton.style.display = 'none';
                     startButton.textContent = 'Start';
                 }
             }
             
             toggleSettingsVisibility() {
-                // Toggle all settings sections by their container elements
+                // Toggle advanced settings sections only (Learning and Reward Parameters remain visible)
                 const settingsSection = document.getElementById('settingsSection');
                 const typographySection = document.querySelector('[id="typographyToggle"]').parentElement;
                 const charactersSection = document.querySelector('[id="charactersToggle"]').parentElement;
@@ -4210,6 +5198,483 @@
                 };
                 reader.readAsText(this.uploadFile);
             }
+            
+            // Heat Map Methods
+            updateHeatMap(agent, x, y) {
+                const key = `${x},${y}`;
+                const heatMap = agent === 'cat' ? this.catHeatMap : this.mouseHeatMap;
+                heatMap[key] = (heatMap[key] || 0) + 1;
+            }
+            
+            toggleHeatMap() {
+                const checkbox = document.getElementById('toggleHeatMap');
+                this.showHeatMap = checkbox.checked;
+                this.renderGrid();
+            }
+            
+            updateHeatMapIntensity() {
+                const slider = document.getElementById('heatMapIntensity');
+                const display = document.getElementById('heatMapIntensityDisplay');
+                this.heatMapIntensity = parseFloat(slider.value);
+                display.textContent = this.heatMapIntensity.toFixed(1);
+                if (this.showHeatMap) {
+                    this.renderGrid();
+                }
+            }
+            
+            clearHeatMap() {
+                this.catHeatMap = {};
+                this.mouseHeatMap = {};
+                this.renderGrid();
+            }
+            
+            getHeatMapColor(visits, maxVisits, agent) {
+                if (visits === 0) return '';
+                const intensity = Math.min(visits / maxVisits, 1);
+                const alpha = intensity * this.heatMapIntensity;
+                
+                // Tom and Jerry colors: grayish for cat (Tom), brown/orange for mouse (Jerry)
+                if (agent === 'cat') {
+                    return `rgba(128, 128, 128, ${alpha})`; // Gray for Tom (cat)
+                } else {
+                    return `rgba(205, 133, 63, ${alpha})`; // Brown/orange for Jerry (mouse)
+                }
+            }
+            
+            // Performance Prediction Methods
+            calculateLearningEfficiency() {
+                if (this.episodeData.length < 10) return 0;
+                
+                const recentEpisodes = this.episodeData.slice(-10);
+                const initialWinRate = this.episodeData.slice(0, 10).reduce((sum, ep) => 
+                    sum + (ep.catWinRate || 0), 0) / 10;
+                const recentWinRate = recentEpisodes.reduce((sum, ep) => 
+                    sum + (ep.catWinRate || 0), 0) / 10;
+                
+                // Efficiency based on convergence speed and stability
+                const improvement = Math.abs(recentWinRate - initialWinRate);
+                const stability = this.calculateWinRateStability(recentEpisodes);
+                
+                return Math.min(100, (improvement * 50 + stability * 50));
+            }
+            
+            calculateWinRateStability(episodes) {
+                if (episodes.length < 5) return 0;
+                
+                const winRates = episodes.map(ep => ep.catWinRate || 0);
+                const mean = winRates.reduce((sum, rate) => sum + rate, 0) / winRates.length;
+                const variance = winRates.reduce((sum, rate) => sum + Math.pow(rate - mean, 2), 0) / winRates.length;
+                const standardDeviation = Math.sqrt(variance);
+                
+                // Lower deviation = higher stability (inverted scale 0-100)
+                return Math.max(0, 100 - (standardDeviation * 2));
+            }
+            
+            predictPerformanceTrend() {
+                if (this.episodeData.length < 15) {
+                    return {
+                        trend: 'insufficient data',
+                        predictedWinner: '-',
+                        confidence: 0,
+                        convergence: 'early training'
+                    };
+                }
+                
+                const recentData = this.episodeData.slice(-15);
+                const catWinRates = recentData.map(ep => ep.catWinRate || 0);
+                
+                // Calculate trend using linear regression
+                const trend = this.calculateTrend(catWinRates);
+                const currentWinRate = catWinRates[catWinRates.length - 1];
+                
+                // Predict winner based on trend and current performance
+                let predictedWinner = 'balanced';
+                let confidence = 0;
+                
+                if (currentWinRate > 60) {
+                    predictedWinner = trend > 0 ? 'cat (strengthening)' : 'cat (weakening)';
+                    confidence = Math.min(95, currentWinRate + Math.abs(trend * 10));
+                } else if (currentWinRate < 40) {
+                    predictedWinner = trend < 0 ? 'mouse (strengthening)' : 'mouse (weakening)';
+                    confidence = Math.min(95, (100 - currentWinRate) + Math.abs(trend * 10));
+                } else {
+                    confidence = Math.max(0, 50 - Math.abs(currentWinRate - 50));
+                }
+                
+                // Determine convergence status
+                const stability = this.calculateWinRateStability(recentData);
+                let convergence = 'converging';
+                if (stability > 80) convergence = 'converged';
+                else if (stability < 40) convergence = 'unstable';
+                
+                return {
+                    trend: trend > 1 ? '↗ improving' : trend < -1 ? '↘ declining' : '→ stable',
+                    predictedWinner,
+                    confidence: Math.round(confidence),
+                    convergence
+                };
+            }
+            
+            calculateTrend(values) {
+                const n = values.length;
+                if (n < 2) return 0;
+                
+                const sumX = (n * (n - 1)) / 2; // Sum of indices
+                const sumY = values.reduce((sum, val) => sum + val, 0);
+                const sumXY = values.reduce((sum, val, i) => sum + (i * val), 0);
+                const sumX2 = values.reduce((sum, val, i) => sum + (i * i), 0);
+                
+                // Linear regression slope
+                const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+                return slope;
+            }
+            
+            updatePerformancePrediction() {
+                const prediction = this.predictPerformanceTrend();
+                const efficiency = this.calculateLearningEfficiency();
+                
+                // Update UI elements
+                document.getElementById('learningEfficiency').textContent = 
+                    efficiency > 0 ? `${Math.round(efficiency)}%` : '-';
+                
+                document.getElementById('winRateTrend').textContent = prediction.trend;
+                document.getElementById('predictedWinner').textContent = prediction.predictedWinner;
+                document.getElementById('predictionConfidence').textContent = 
+                    prediction.confidence > 0 ? `${prediction.confidence}%` : '-';
+                document.getElementById('convergenceStatus').textContent = prediction.convergence;
+            }
+            
+            // Environment Preset Methods
+            getPresetConfigurations() {
+                return {
+                    beginner: {
+                        name: 'Beginner',
+                        description: 'Easy learning environment with high vision and few obstacles',
+                        episodeCount: 500,
+                        stepCount: 150,
+                        predatorVision: 10,
+                        preyVision: 8,
+                        obstacleCount: 5,
+                        catLearningRate: 0.15,
+                        mouseLearningRate: 0.15,
+                        catEpsilon: 0.4,
+                        mouseEpsilon: 0.3,
+                        discountFactor: 0.9,
+                        epsilonDecay: 0.995
+                    },
+                    intermediate: {
+                        name: 'Intermediate',
+                        description: 'Balanced environment for standard training',
+                        episodeCount: 1000,
+                        stepCount: 200,
+                        predatorVision: 8,
+                        preyVision: 6,
+                        obstacleCount: 10,
+                        catLearningRate: 0.11,
+                        mouseLearningRate: 0.12,
+                        catEpsilon: 0.35,
+                        mouseEpsilon: 0.25,
+                        discountFactor: 0.95,
+                        epsilonDecay: 0.995
+                    },
+                    expert: {
+                        name: 'Expert',
+                        description: 'Challenging environment with limited vision and many obstacles',
+                        episodeCount: 1500,
+                        stepCount: 250,
+                        predatorVision: 6,
+                        preyVision: 4,
+                        obstacleCount: 20,
+                        catLearningRate: 0.08,
+                        mouseLearningRate: 0.09,
+                        catEpsilon: 0.3,
+                        mouseEpsilon: 0.2,
+                        discountFactor: 0.98,
+                        epsilonDecay: 0.998
+                    },
+                    chaos: {
+                        name: 'Chaos Mode',
+                        description: 'Extreme difficulty with minimal vision and maximum obstacles',
+                        episodeCount: 2000,
+                        stepCount: 300,
+                        predatorVision: 4,
+                        preyVision: 3,
+                        obstacleCount: 35,
+                        catLearningRate: 0.05,
+                        mouseLearningRate: 0.06,
+                        catEpsilon: 0.25,
+                        mouseEpsilon: 0.15,
+                        discountFactor: 0.99,
+                        epsilonDecay: 0.999
+                    }
+                };
+            }
+            
+            loadPreset(presetName) {
+                const presets = this.getPresetConfigurations();
+                const preset = presets[presetName];
+                
+                if (!preset) {
+                    alert('Unknown preset: ' + presetName);
+                    return;
+                }
+                
+                // Apply preset values to form controls
+                document.getElementById('episodeCount').value = preset.episodeCount;
+                document.getElementById('stepCount').value = preset.stepCount;
+                document.getElementById('predatorVision').value = preset.predatorVision;
+                document.getElementById('preyVision').value = preset.preyVision;
+                document.getElementById('obstacleCount').value = preset.obstacleCount;
+                
+                // Update learning parameters
+                document.getElementById('catLearningRateSlider').value = preset.catLearningRate;
+                document.getElementById('mouseLearningRateSlider').value = preset.mouseLearningRate;
+                document.getElementById('catEpsilonSlider').value = preset.catEpsilon;
+                document.getElementById('mouseEpsilonSlider').value = preset.mouseEpsilon;
+                document.getElementById('discountFactorSlider').value = preset.discountFactor;
+                document.getElementById('epsilonDecaySlider').value = preset.epsilonDecay;
+                
+                // Update internal values
+                this.catLearningRate = preset.catLearningRate;
+                this.mouseLearningRate = preset.mouseLearningRate;
+                this.catEpsilon = preset.catEpsilon;
+                this.mouseEpsilon = preset.mouseEpsilon;
+                this.catInitialEpsilon = preset.catEpsilon;
+                this.mouseInitialEpsilon = preset.mouseEpsilon;
+                this.discountFactor = preset.discountFactor;
+                this.epsilonDecay = preset.epsilonDecay;
+                
+                // Trigger display updates
+                this.updateCatLearningRate();
+                this.updateMouseLearningRate();
+                this.updateCatEpsilon();
+                this.updateMouseEpsilon();
+                this.updateRewardParameter('discountFactor');
+                this.updateRewardParameter('epsilonDecay');
+                
+                // Regenerate obstacles with new count
+                this.generatePersistentObstacles();
+                this.originalObstacles = JSON.parse(JSON.stringify(this.obstacles));
+                this.initializeGrid();
+                
+                this.showNotification(`Loaded ${preset.name} preset`, 'success');
+            }
+            
+            
+            // UI Enhancement Methods
+            showKeyboardShortcuts() {
+                const shortcuts = `
+                    <div style="font-size: 0.9rem; line-height: 1.4;">
+                        <h3 style="color: #7FE9E1; margin-bottom: 1rem;">Keyboard Shortcuts</h3>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                            <div>
+                                <h4 style="color: #7FE9E1; margin-bottom: 0.5rem;">Training Control</h4>
+                                <div><strong>Spacebar</strong> - Start/Stop Training</div>
+                                <div><strong>P</strong> - Pause/Continue</div>
+                                <div><strong>R</strong> - New Round</div>
+                                <div><strong>Ctrl + D</strong> - Download Data</div>
+                            </div>
+                            
+                            <div>
+                                <h4 style="color: #7FE9E1; margin-bottom: 0.5rem;">Visualization</h4>
+                                <div><strong>H</strong> - Toggle Heat Map</div>
+                                <div><strong>V</strong> - Toggle Vision</div>
+                                <div><strong>Ctrl + M</strong> - Toggle Settings</div>
+                                <div><strong>F1</strong> - Show This Help</div>
+                            </div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div>
+                                <h4 style="color: #7FE9E1; margin-bottom: 0.5rem;">Presets</h4>
+                                <div><strong>1</strong> - Beginner Preset</div>
+                                <div><strong>2</strong> - Intermediate Preset</div>
+                                <div><strong>3</strong> - Expert Preset</div>
+                                <div><strong>4</strong> - Chaos Preset</div>
+                            </div>
+                            
+                            <div>
+                                <h4 style="color: #7FE9E1; margin-bottom: 0.5rem;">Speed Control</h4>
+                                <div><strong>Ctrl + ↑</strong> - Increase Speed</div>
+                                <div><strong>Ctrl + ↓</strong> - Decrease Speed</div>
+                                <div style="margin-top: 0.5rem; font-size: 0.8rem; color: #a0e7e0;">
+                                    Note: Lower values = faster simulation
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // Create and show modal
+                this.showModal('Keyboard Shortcuts', shortcuts);
+            }
+            
+            showModal(title, content) {
+                // Remove existing modal if present
+                const existingModal = document.getElementById('shortcutModal');
+                if (existingModal) {
+                    existingModal.remove();
+                }
+                
+                // Create modal
+                const modal = document.createElement('div');
+                modal.id = 'shortcutModal';
+                modal.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.8);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 10003;
+                `;
+                
+                const modalContent = document.createElement('div');
+                modalContent.style.cssText = `
+                    background: #101827;
+                    border: 2px solid #7FE9E1;
+                    border-radius: 8px;
+                    padding: 2rem;
+                    max-width: 600px;
+                    max-height: 80vh;
+                    overflow-y: auto;
+                    color: #7FE9E1;
+                    font-family: 'Space Mono', 'Lucida Console', monospace;
+                    position: relative;
+                `;
+                
+                const closeButton = document.createElement('button');
+                closeButton.innerHTML = '×';
+                closeButton.style.cssText = `
+                    position: absolute;
+                    top: 1rem;
+                    right: 1rem;
+                    background: none;
+                    border: none;
+                    color: #7FE9E1;
+                    font-size: 1.5rem;
+                    cursor: pointer;
+                    width: 30px;
+                    height: 30px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                `;
+                
+                closeButton.addEventListener('click', () => modal.remove());
+                modalContent.innerHTML = content;
+                modalContent.appendChild(closeButton);
+                modal.appendChild(modalContent);
+                
+                // Close on click outside
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) modal.remove();
+                });
+                
+                // Close on Escape
+                const handleEscape = (e) => {
+                    if (e.key === 'Escape') {
+                        modal.remove();
+                        document.removeEventListener('keydown', handleEscape);
+                    }
+                };
+                document.addEventListener('keydown', handleEscape);
+                
+                document.body.appendChild(modal);
+            }
+            
+            // Add keyboard shortcut indicator
+            addKeyboardIndicator() {
+                const indicator = document.createElement('div');
+                indicator.id = 'keyboardIndicator';
+                indicator.innerHTML = 'Press F1 for shortcuts';
+                indicator.style.cssText = `
+                    position: fixed;
+                    bottom: 1rem;
+                    right: 1rem;
+                    background: rgba(16, 24, 39, 0.9);
+                    color: #7FE9E1;
+                    border: 1px solid #4B566A;
+                    border-radius: 4px;
+                    padding: 0.5rem 0.75rem;
+                    font-family: 'Space Mono', 'Lucida Console', monospace;
+                    font-size: 0.75rem;
+                    z-index: 1000;
+                    opacity: 0.7;
+                    transition: opacity 0.2s ease;
+                    cursor: pointer;
+                `;
+                
+                indicator.addEventListener('mouseenter', () => {
+                    indicator.style.opacity = '1';
+                });
+                
+                indicator.addEventListener('mouseleave', () => {
+                    indicator.style.opacity = '0.7';
+                });
+                
+                indicator.addEventListener('click', () => {
+                    this.showKeyboardShortcuts();
+                });
+                
+                document.body.appendChild(indicator);
+            }
+            
+            // Add visual feedback for actions
+            showNotification(message, type = 'info') {
+                // Remove existing notification
+                const existing = document.getElementById('notification');
+                if (existing) existing.remove();
+                
+                const notification = document.createElement('div');
+                notification.id = 'notification';
+                notification.textContent = message;
+                
+                const colors = {
+                    info: '#7FE9E1',
+                    success: '#7FE9E1',
+                    warning: '#7FE9E1',
+                    error: '#7FE9E1'
+                };
+                
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 2rem;
+                    right: 2rem;
+                    background: #101827;
+                    color: ${colors[type]};
+                    border: 1px solid ${colors[type]};
+                    border-radius: 4px;
+                    padding: 0.75rem 1rem;
+                    font-family: 'Space Mono', 'Lucida Console', monospace;
+                    font-size: 0.85rem;
+                    z-index: 10002;
+                    opacity: 0;
+                    transform: translateX(100%);
+                    transition: all 0.3s ease;
+                `;
+                
+                document.body.appendChild(notification);
+                
+                // Animate in
+                requestAnimationFrame(() => {
+                    notification.style.opacity = '1';
+                    notification.style.transform = 'translateX(0)';
+                });
+                
+                // Auto remove after 3 seconds
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.style.opacity = '0';
+                        notification.style.transform = 'translateX(100%)';
+                        setTimeout(() => notification.remove(), 300);
+                    }
+                }, 3000);
+            }
         }
 
         // Initialize the application when the page loads
@@ -4219,12 +5684,225 @@
             
             const app = new LumonResearch();
             app.initHeaderScrambleEffect(); // Initialize header scramble effect
+            app.initWelcomeDecryptedText(); // Initialize welcome screen DecryptedText effects
             
             // Re-enable animations after a short delay
             setTimeout(() => {
                 document.body.classList.remove('no-animations');
             }, 100);
         });
+        
+        // WebGL Shader Effects
+        
+        // DecryptedText effect class - vanilla JS version of the React component
+        class DecryptedText {
+            constructor(element, options = {}) {
+                this.element = element;
+                this.originalText = element.textContent;
+                this.options = {
+                    speed: options.speed || 50,
+                    maxIterations: options.maxIterations || 10,
+                    sequential: options.sequential || false,
+                    revealDirection: options.revealDirection || 'start', // 'start', 'end', 'center'
+                    useOriginalCharsOnly: options.useOriginalCharsOnly || false,
+                    characters: options.characters || 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!@#$%^&*()_+',
+                    animateOn: options.animateOn || 'hover', // 'hover', 'view'
+                    ...options
+                };
+                
+                this.displayText = this.originalText;
+                this.isHovering = false;
+                this.isScrambling = false;
+                this.revealedIndices = new Set();
+                this.hasAnimated = false;
+                this.interval = null;
+                this.currentIteration = 0;
+                
+                this.init();
+            }
+            
+            init() {
+                // Wrap the element content
+                this.element.innerHTML = `<span class="decrypted-text-wrapper">${this.createCharSpans(this.originalText)}</span>`;
+                
+                // Set up event listeners
+                if (this.options.animateOn === 'hover') {
+                    this.element.addEventListener('mouseenter', () => this.startAnimation());
+                    this.element.addEventListener('mouseleave', () => this.stopAnimation());
+                } else if (this.options.animateOn === 'view') {
+                    this.setupIntersectionObserver();
+                }
+            }
+            
+            createCharSpans(text) {
+                return text.split('').map((char, index) => 
+                    `<span class="decrypted-char" data-index="${index}">${char === ' ' ? '&nbsp;' : char}</span>`
+                ).join('');
+            }
+            
+            setupIntersectionObserver() {
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting && !this.hasAnimated) {
+                            this.startAnimation();
+                            this.hasAnimated = true;
+                        }
+                    });
+                }, {
+                    root: null,
+                    rootMargin: '0px',
+                    threshold: 0.1
+                });
+                
+                observer.observe(this.element);
+            }
+            
+            startAnimation() {
+                this.isHovering = true;
+                this.isScrambling = true;
+                this.currentIteration = 0;
+                
+                this.interval = setInterval(() => {
+                    if (this.options.sequential) {
+                        this.sequentialReveal();
+                    } else {
+                        this.scrambleAll();
+                    }
+                }, this.options.speed);
+            }
+            
+            stopAnimation() {
+                this.isHovering = false;
+                this.isScrambling = false;
+                this.revealedIndices.clear();
+                
+                if (this.interval) {
+                    clearInterval(this.interval);
+                    this.interval = null;
+                }
+                
+                // Reset to original text
+                this.updateDisplay(this.originalText, new Set());
+            }
+            
+            sequentialReveal() {
+                if (this.revealedIndices.size < this.originalText.length) {
+                    const nextIndex = this.getNextIndex();
+                    this.revealedIndices.add(nextIndex);
+                    
+                    const shuffledText = this.shuffleText(this.originalText, this.revealedIndices);
+                    this.updateDisplay(shuffledText, this.revealedIndices);
+                } else {
+                    this.finishAnimation();
+                }
+            }
+            
+            scrambleAll() {
+                const shuffledText = this.shuffleText(this.originalText, this.revealedIndices);
+                this.updateDisplay(shuffledText, this.revealedIndices);
+                
+                this.currentIteration++;
+                if (this.currentIteration >= this.options.maxIterations) {
+                    this.finishAnimation();
+                }
+            }
+            
+            finishAnimation() {
+                if (this.interval) {
+                    clearInterval(this.interval);
+                    this.interval = null;
+                }
+                this.isScrambling = false;
+                this.updateDisplay(this.originalText, new Set(Array.from({length: this.originalText.length}, (_, i) => i)));
+            }
+            
+            getNextIndex() {
+                const textLength = this.originalText.length;
+                
+                switch (this.options.revealDirection) {
+                    case 'start':
+                        return this.revealedIndices.size;
+                    case 'end':
+                        return textLength - 1 - this.revealedIndices.size;
+                    case 'center':
+                        const middle = Math.floor(textLength / 2);
+                        const offset = Math.floor(this.revealedIndices.size / 2);
+                        const nextIndex = this.revealedIndices.size % 2 === 0 
+                            ? middle + offset 
+                            : middle - offset - 1;
+                            
+                        if (nextIndex >= 0 && nextIndex < textLength && !this.revealedIndices.has(nextIndex)) {
+                            return nextIndex;
+                        }
+                        
+                        // Fallback: find first unrevealed index
+                        for (let i = 0; i < textLength; i++) {
+                            if (!this.revealedIndices.has(i)) return i;
+                        }
+                        return 0;
+                    default:
+                        return this.revealedIndices.size;
+                }
+            }
+            
+            shuffleText(originalText, revealedSet) {
+                const availableChars = this.options.useOriginalCharsOnly
+                    ? Array.from(new Set(originalText.split(''))).filter(char => char !== ' ')
+                    : this.options.characters.split('');
+                
+                if (this.options.useOriginalCharsOnly) {
+                    const positions = originalText.split('').map((char, i) => ({
+                        char,
+                        isSpace: char === ' ',
+                        index: i,
+                        isRevealed: revealedSet.has(i)
+                    }));
+                    
+                    const nonSpaceChars = positions
+                        .filter(p => !p.isSpace && !p.isRevealed)
+                        .map(p => p.char);
+                    
+                    // Shuffle array
+                    for (let i = nonSpaceChars.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [nonSpaceChars[i], nonSpaceChars[j]] = [nonSpaceChars[j], nonSpaceChars[i]];
+                    }
+                    
+                    let charIndex = 0;
+                    return positions.map(p => {
+                        if (p.isSpace) return ' ';
+                        if (p.isRevealed) return originalText[p.index];
+                        return nonSpaceChars[charIndex++] || p.char;
+                    }).join('');
+                } else {
+                    return originalText.split('').map((char, i) => {
+                        if (char === ' ') return ' ';
+                        if (revealedSet.has(i)) return originalText[i];
+                        return availableChars[Math.floor(Math.random() * availableChars.length)];
+                    }).join('');
+                }
+            }
+            
+            updateDisplay(text, revealedSet) {
+                const wrapper = this.element.querySelector('.decrypted-text-wrapper');
+                if (!wrapper) return;
+                
+                const chars = wrapper.querySelectorAll('.decrypted-char');
+                text.split('').forEach((char, index) => {
+                    if (chars[index]) {
+                        chars[index].innerHTML = char === ' ' ? '&nbsp;' : char;
+                        
+                        if (revealedSet.has(index) || !this.isScrambling) {
+                            chars[index].classList.add('revealed');
+                            chars[index].classList.remove('encrypted-char');
+                        } else {
+                            chars[index].classList.remove('revealed');
+                            chars[index].classList.add('encrypted-char');
+                        }
+                    }
+                });
+            }
+        }
     </script>
 
     <!-- Help Popup -->
