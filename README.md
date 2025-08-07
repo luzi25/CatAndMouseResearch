@@ -1,90 +1,80 @@
-# Lumon Research - AI Predator-Prey Simulation
+# Cat and Mouse AI Reinforcement Learning Platform
 
 A sophisticated web-based AI simulation featuring reinforcement learning agents in a predator-prey ecosystem with advanced visual effects and comprehensive customization options.
 
 ## 🎯 Features
 
 ### Core Simulation
-- **Individual AI Agents**: Cat (predator) and Mouse (prey) with separate Q-learning algorithms, customizable learning parameters, and dynamically balanced reward systems
-- **Dynamic Vision System**: Toggle between circular (360°) and directional cone vision with AI-controlled rotation that adapts with each step
-- **Strategic Rotation AI**: Agents intelligently choose facing direction based on tactical situation - hunting vs evasion strategies
+- **Individual AI Agents**: Cat (predator) and Mouse (prey) with separate Q-learning algorithms
+- **Dynamic Vision System**: Toggle between circular (360°) and directional cone vision with AI-controlled rotation
+- **Strategic Rotation AI**: Agents intelligently choose facing direction based on tactical situation
 - **Dynamic Environment**: Customizable grid size, obstacle placement, and spawn points
-- **Real-time Analytics**: Performance tracking with win/loss statistics, episode data, and AI balance analysis for optimal competitive gameplay
-- **Training Persistence**: Save/load training data with environment configurations and intelligent button state management
+- **Real-time Analytics**: Performance tracking with win/loss statistics and episode data
+- **Training Persistence**: Save/load training data with environment configurations
 
 ### Visual Effects
 - **CRT Monitor Simulation**: Phosphor glow, scanlines, contrast, brightness, and saturation controls
 - **Fisheye Lens Effect**: Dramatic lens distortion with elliptical clipping and enhanced vignette
-- **Unified Scramble Animation**: Header and footer feature matching mouse-proximity scramble text effects for consistent interactive feedback
-- **Text Pressure Effects**: Dynamic character styling based on mouse proximity with weight, opacity, and scale effects
+- **Unified Scramble Animation**: Header and footer feature matching mouse-proximity scramble text effects
+- **Lumon Hover Effects**: Discrete 3-level scaling system (5x, 3x, 2x) with character-type-specific glows on render grid
+- **Text Pressure Effects**: Dynamic character styling on interface elements (title, controls)
 
 ### User Interface
-- **Hidden Advanced Settings**: All 4 settings tabs hidden by default, accessible via **Ctrl+M** keyboard shortcut for cleaner interface
-- **Collapsible Interface**: Organized accordion panels for Learning Parameters, Display Controls, and Settings with consistent spacing
-- **Individual Learning Controls**: Separate parameter controls for cat and mouse agents (learning rate, exploration rate) plus shared parameters
-- **Smart Button States**: Dynamic Start/Continue button behavior based on training data status with visual upload feedback
-- **Direct Character Editing**: Click-to-edit functionality for all game characters (·, C, M, O, ?, !)
-- **Borderless Sliders**: Clean, modern range inputs without borders for minimalist design
+- **Hidden Advanced Settings**: All settings accessible via **Ctrl+M** keyboard shortcut for cleaner interface
+- **Collapsible Interface**: Organized accordion panels for Learning Parameters and Settings
+- **Individual Learning Controls**: Separate parameter controls for cat and mouse agents
+- **Smart Button States**: Dynamic Start/Continue button behavior based on training data status
+- **Direct Character Editing**: Click-to-edit functionality for all game characters
 - **Enhanced Performance**: Simulation speed up to 5000ms for extreme testing scenarios
-- **Responsive Design**: Viewport-constrained interface that prevents layout overflow
-
-### Typography System
-- **Font Customization**: Individual size controls for all interface elements
-- **Grid Character Control**: Adjustable character size and spacing for the game grid
-- **Value Display Toggle**: Show/hide parameter value displays
-- **Reset Functionality**: One-click reset to default typography settings
 
 ## 🚀 Quick Start
 
-1. Open `lumon_research.html` in a modern web browser
-2. Click **"Start Training"** to begin the AI simulation
-3. Use the **Settings** dropdown to customize visual effects and characters
+1. Open `index.html` in a modern web browser
+2. Click **"Start"** to begin the AI simulation
+3. Use **Ctrl+M** to access advanced settings and customization options
 4. Monitor agent performance in real-time through the analytics panel
-5. Save training progress using the **Download Training** button
+5. Save training progress using the **Download** button
 
 ## 🎮 Controls
 
 ### Training Controls
-- **Start/Continue Training**: Intelligent button that adapts based on existing training data
-- **Stop Training**: Pause current session
+- **Start/Continue**: Intelligent button that adapts based on existing training data
+- **Stop**: Pause current session
+- **New Round**: Start fresh training session (appears after training completion)
 - **Download/Upload**: Save and restore training data with visual feedback
 
 ### Vision System
 - **Toggle Vision**: Enable/disable vision visualization
 - **Cone Vision**: Switch between circular and directional cone vision
 - **Vision Angle**: Adjust cone angle (30°-180°)
-- **Dynamic Rotation**: Agents automatically rotate each step based on AI strategy (manual override available)
-- **Strategic Behavior**: Cat hunts by facing toward mouse; Mouse uses evasion tactics with occasional opposite-direction rotation
+- **Dynamic Rotation**: Agents automatically rotate each step based on AI strategy
 
 ### Learning Parameters
 - **Individual Agent Controls**: Separate learning rate and exploration rate for cat and mouse
 - **Shared Parameters**: Common discount factor and exploration decay settings
 - **Collapsible Sections**: Organized accordion interface for better space management
 
-### Visual Customization
-- **CRT Effects**: Enable/disable retro monitor simulation
-- **Fisheye Lens**: Adjust lens distortion intensity (0-5)
-- **Scramble Animations**: Unified mouse-proximity text scrambling for header and footer
-- **Character Editing**: Click any blue character value to edit
-- **Advanced Settings**: Access all customization options via **Ctrl+M** shortcut
-
-### Grid Settings
-- **Font Size**: Character size in the game grid
-- **Spacing**: Horizontal and vertical character spacing
-- **Characters**: Customize all game symbols (empty space ·, cat C, mouse M, obstacles O, vision ?, collision !)
+### Advanced Settings (Ctrl+M)
+- **Visual Customization**: CRT effects, fisheye lens, Lumon hover effects, text pressure effects
+- **Lumon Hover Configuration**: Customizable effect radius, scaling thresholds, transition speed
+- **Character Editing**: Customize all game symbols
+- **Typography Controls**: Font sizes for all interface elements
+- **Layout Positioning**: Adjust panel positions
 
 ## 🔧 Technical Details
 
 ### AI Implementation
-- **Individual Q-Learning Agents**: Separate algorithms with customizable learning parameters and dynamically balanced reward systems optimized for competitive 50/50 win rates
-- **Dynamic Vision System**: Mathematical cone vision algorithm with AI-controlled rotation that adapts each step
-- **Strategic Decision Making**: Agents choose both movement and facing direction based on exploration vs exploitation phases
+- **Individual Q-Learning Agents**: Separate algorithms with customizable learning parameters
+- **Dynamic Vision System**: Mathematical cone vision algorithm with AI-controlled rotation
+- **Strategic Decision Making**: Agents choose both movement and facing direction
 - **State Space**: Grid position awareness with obstacle detection and line-of-sight calculations
-- **Action Space**: Movement actions (up, down, left, right) plus dynamic rotation selection with intelligent tie-breaking
-- **Reward System**: Dynamically balanced distance-based rewards with win/loss bonuses, vision-aware scoring, and strategic penalties designed for competitive gameplay (cat hunting +8, mouse escape +4/+2, danger penalties -0.5/-2)
+- **Action Space**: Movement actions plus dynamic rotation selection with intelligent tie-breaking
+- **Reward System**: Dynamically balanced distance-based rewards designed for competitive gameplay
 
 ### Performance Features
-- **Optimized Rendering**: Efficient DOM updates for smooth animation
+- **Optimized Rendering**: Efficient DOM updates with differential grid rendering and element caching
+- **Spatial Optimization**: Ultra-smooth mouse proximity effects with spatial partitioning
+- **Adaptive Performance**: Automatic quality adjustment based on frame rate monitoring
 - **Memory Management**: Persistent Q-tables with training data compression
 - **Responsive UI**: Viewport-constrained layouts preventing scroll overflow
 
@@ -97,9 +87,10 @@ A sophisticated web-based AI simulation featuring reinforcement learning agents 
 
 The simulation provides comprehensive performance metrics:
 - **Episode Tracking**: Current episode number and step count
-- **Win Statistics**: Cat vs Mouse victory counts
+- **Win Statistics**: Cat vs Mouse victory counts with percentages
 - **Performance Charts**: Visual representation of training progress
 - **Training Data**: Exportable session data with environment configuration
+- **Performance Trends**: Win rate predictions and convergence monitoring
 
 ## 🎨 Customization
 
@@ -116,51 +107,54 @@ The simulation provides comprehensive performance metrics:
 - Background: Dark Navy (`#101827`)
 - Accent: Medium Gray (`#4B566A`)
 - Text: Light Cyan for contrast
+- Heat Maps: Tom and Jerry colors (gray for cat, brown/orange for mouse)
 
-## 🔄 Recent Updates
+### Lumon Hover Effects
+- **Cat (Predator)**: Red/Orange glow (`#FF6B6B` to `#FFAB91`)
+- **Mouse (Prey)**: Green glow (`#4CAF50` to `#A5D6A7`)
+- **Obstacles**: Yellow/Gold glow (`#FFD700` to `#FFF176`)
+- **Vision Cells**: Blue/Cyan glow (`#00BCD4` to `#80DEEA`)
+- **Collisions**: Purple/Magenta glow (`#E91E63` to `#F8BBD9`)
+- **Empty Spaces**: Subtle white/cyan glow
 
-### Major Features (Latest)
-- **AI Reward System Rebalancing**: Comprehensive reward optimization based on training data analysis, addressing mouse dominance (69.9% win rate) with enhanced cat hunting rewards and strategic penalties for balanced competitive gameplay
-- **Dynamic Agent Rotation**: AI agents now rotate their vision direction with each step based on strategic decision-making
-- **Hidden Advanced Settings**: All customization options accessible via Ctrl+M shortcut for cleaner default interface
-- **Enhanced Performance**: Simulation speed increased to 5000ms maximum for extreme testing scenarios
-- **Unified Animations**: Header and footer now share matching scramble text effects
-- **Cone Vision System**: Directional vision with adjustable angles and AI-controlled rotation
-- **Individual Learning Parameters**: Separate AI controls for cat and mouse agents
-- **Smart Button States**: Dynamic UI that adapts to training data status
-- **Collapsible Interface**: Organized accordion panels for better space management
+## 🖱️ Mouse Interaction
 
-### Previous Updates
-- **Consolidated Settings**: Reorganized UI with accordion subsections
-- **Fisheye Effects**: Enhanced visual distortion with dramatic lens effects
-- **Character Editing**: Direct click-to-edit functionality
-- **Layout Optimization**: Strict height constraints preventing footer displacement
-- **Performance Improvements**: Optimized rendering and memory usage
+### Render Grid Hover Effects
+- **Lumon Scaling**: Move cursor over the simulation grid to see characters scale dynamically
+- **3 Discrete Levels**: Large (5x scale), Medium (3x), Small (2x) based on cursor proximity  
+- **Character-Specific Colors**: Each agent type has unique glow colors for better identification
+- **Configurable Thresholds**: Adjust effect radius and scaling zones in advanced settings
+- **Smooth Tracking**: Optimized mouse coordinate calculation for fluid responsiveness
 
-## 📁 Project Structure
+### Interface Elements  
+- **Text Pressure Effects**: Title and control text responds to cursor proximity with styling changes
+- **Inline Editing**: Click parameter values to edit directly
+- **Collapsible Panels**: Click section headers to expand/collapse settings groups
 
-```
-├── lumon_research.html    # Main application file
-├── CHANGELOG.md          # Detailed change history
-├── README.md            # This file
-└── package.json         # Project metadata
-```
+## ⌨️ Keyboard Shortcuts
+
+- **Spacebar**: Start/Stop training
+- **Ctrl+M**: Toggle advanced settings
+- **H**: Toggle heat map display
+- **V**: Toggle vision display
+- **1-4**: Load environment presets
+- **F1**: Show keyboard shortcuts help
 
 ## 🤖 AI Behavior
 
 ### Cat (Predator) Strategy
-- **Individual Learning**: Customizable learning rate and exploration parameters with optimized reward system
-- **Aggressive Hunting**: Enhanced reward system (+8 for hunting, +2 for exploration) encourages persistent pursuit
-- **Dynamic Hunting**: Rotates vision cone toward mouse for strategic pursuit each step
-- **Vision-Based Pursuit**: Utilizes directional cone vision for focused tracking with strategic penalties for retreating
-- **Adaptive Behavior**: Balances exploration vs exploitation with separate epsilon decay and movement pressure (-0.1 for standing still)
+- **Individual Learning**: Customizable learning rate and exploration parameters
+- **Aggressive Hunting**: Enhanced reward system encourages persistent pursuit
+- **Dynamic Hunting**: Rotates vision cone toward mouse for strategic pursuit
+- **Vision-Based Pursuit**: Utilizes directional cone vision for focused tracking
+- **Adaptive Behavior**: Balances exploration vs exploitation with separate epsilon decay
 
 ### Mouse (Prey) Strategy
-- **Separate AI System**: Independent learning parameters from cat agent with balanced reward constraints
-- **Strategic Escape**: Rebalanced reward system (+4 for strategic escape, +2 for blind escape) requires more tactical thinking
-- **Evasion Tactics**: Dynamically rotates between watching cat and looking away (30% evasion chance) with movement pressure (-0.2 for standing still)
-- **Danger Awareness**: Enhanced penalty system (-0.5/-2) for approaching threats encourages smarter positioning
-- **Survival Optimization**: Learns optimal movement and rotation patterns with risk/reward balance for competitive gameplay
+- **Separate AI System**: Independent learning parameters from cat agent
+- **Strategic Escape**: Balanced reward system requires tactical thinking
+- **Evasion Tactics**: Dynamically rotates between watching cat and looking away
+- **Danger Awareness**: Enhanced penalty system encourages smarter positioning
+- **Survival Optimization**: Learns optimal movement and rotation patterns
 
 ## 🛠️ Development
 
@@ -169,7 +163,19 @@ The project is built with vanilla JavaScript, HTML5, and CSS3:
 - Self-contained single-file application
 - Modern web standards compliance
 
+## 📁 Project Structure
+
+```
+├── index.html           # Main application file
+├── README.md           # This file
+├── CHANGELOG.md        # Detailed change history
+├── test_fisheye.html   # Fisheye effect test file
+└── assets/
+    ├── Lumon_logo.png
+    └── Logo_Load_Up_Screen_2-3387166046 (1).gif
+```
+
 ---
 
-**Lumon Research** - Advanced AI Simulation Platform  
+**Cat and Mouse AI Platform** - Advanced Reinforcement Learning Research Tool  
 *Exploring the boundaries of artificial intelligence through interactive predator-prey dynamics*
