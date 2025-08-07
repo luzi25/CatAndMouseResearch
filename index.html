@@ -886,7 +886,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding-top: 2rem; /* Add padding to avoid title overlap */
+            padding-top: 5rem; /* Move rendered section 2 more lines down */
         }
 
         .grid {
@@ -908,22 +908,153 @@
             position: relative;
         }
 
-        /* Mouse proximity effects for individual characters */
+        /* Mouse proximity effects - Lumon-style discrete scaling */
         .grid-char {
             display: inline-block;
-            transition: all 0.15s ease-out;
+            /* Dynamic transitions using CSS custom property */
+            transition: transform var(--lumon-transition, 0.1s) ease-out,
+                       color var(--lumon-transition, 0.1s) ease-out,
+                       text-shadow var(--lumon-transition, 0.1s) ease-out,
+                       font-weight var(--lumon-transition, 0.1s) ease-out,
+                       z-index 0s;
             position: relative;
             z-index: 1;
+            /* Hardware acceleration */
+            will-change: transform, color, text-shadow, font-weight;
+            backface-visibility: hidden;
+            transform: translateZ(0) scale(1);
+            contain: layout style paint;
         }
 
-        .grid-char.proximity-active {
-            transform: scale(var(--char-scale, 1));
-            color: rgba(127, 233, 225, var(--char-intensity, 1));
-            text-shadow: 
-                0 0 calc(5px * var(--char-glow, 1)) rgba(127, 233, 225, var(--char-intensity, 0.3)),
-                0 0 calc(10px * var(--char-glow, 1)) rgba(127, 233, 225, calc(var(--char-intensity, 0.2) * 0.5)),
-                0 0 calc(15px * var(--char-glow, 1)) rgba(127, 233, 225, calc(var(--char-intensity, 0.1) * 0.3));
-            font-weight: calc(400 + (200 * var(--char-weight, 0)));
+        /* Lumon-style discrete scaling levels - Base effects */
+        .grid-char.lumon-large {
+            transform: translateZ(0) scale(5);
+            color: white;
+            z-index: 100;
+            font-weight: 600;
+        }
+
+        .grid-char.lumon-medium {
+            transform: translateZ(0) scale(3);
+            color: rgba(255,255,255,0.9);
+            z-index: 50;
+            font-weight: 500;
+        }
+
+        .grid-char.lumon-small {
+            transform: translateZ(0) scale(2);
+            color: rgba(255,255,255,0.8);
+            z-index: 25;
+            font-weight: 450;
+        }
+
+        /* Character-specific Lumon effects */
+        
+        /* Cat (Predator) - Red/Orange glow like aggressive numbers */
+        .grid-char.char-cat.lumon-large {
+            color: #FF6B6B;
+            text-shadow: 0 0 25px rgba(255,107,107,0.9),
+                        0 0 50px rgba(255,107,107,0.7),
+                        0 0 75px rgba(255,60,60,0.5);
+        }
+        .grid-char.char-cat.lumon-medium {
+            color: #FF8A80;
+            text-shadow: 0 0 18px rgba(255,138,128,0.7),
+                        0 0 35px rgba(255,107,107,0.5);
+        }
+        .grid-char.char-cat.lumon-small {
+            color: #FFAB91;
+            text-shadow: 0 0 12px rgba(255,171,145,0.5),
+                        0 0 25px rgba(255,138,128,0.3);
+        }
+
+        /* Mouse (Prey) - Green glow like evasive numbers */
+        .grid-char.char-mouse.lumon-large {
+            color: #4CAF50;
+            text-shadow: 0 0 25px rgba(76,175,80,0.9),
+                        0 0 50px rgba(76,175,80,0.7),
+                        0 0 75px rgba(56,142,60,0.5);
+        }
+        .grid-char.char-mouse.lumon-medium {
+            color: #81C784;
+            text-shadow: 0 0 18px rgba(129,199,132,0.7),
+                        0 0 35px rgba(76,175,80,0.5);
+        }
+        .grid-char.char-mouse.lumon-small {
+            color: #A5D6A7;
+            text-shadow: 0 0 12px rgba(165,214,167,0.5),
+                        0 0 25px rgba(129,199,132,0.3);
+        }
+
+        /* Obstacles - Yellow/Gold glow like warning numbers */
+        .grid-char.char-obstacle.lumon-large {
+            color: #FFD700;
+            text-shadow: 0 0 25px rgba(255,215,0,0.9),
+                        0 0 50px rgba(255,215,0,0.7),
+                        0 0 75px rgba(255,193,7,0.5);
+        }
+        .grid-char.char-obstacle.lumon-medium {
+            color: #FFEB3B;
+            text-shadow: 0 0 18px rgba(255,235,59,0.7),
+                        0 0 35px rgba(255,215,0,0.5);
+        }
+        .grid-char.char-obstacle.lumon-small {
+            color: #FFF176;
+            text-shadow: 0 0 12px rgba(255,241,118,0.5),
+                        0 0 25px rgba(255,235,59,0.3);
+        }
+
+        /* Vision cells - Blue/Cyan glow like data numbers */
+        .grid-char.char-vision.lumon-large {
+            color: #00BCD4;
+            text-shadow: 0 0 25px rgba(0,188,212,0.9),
+                        0 0 50px rgba(0,188,212,0.7),
+                        0 0 75px rgba(0,151,167,0.5);
+        }
+        .grid-char.char-vision.lumon-medium {
+            color: #4DD0E1;
+            text-shadow: 0 0 18px rgba(77,208,225,0.7),
+                        0 0 35px rgba(0,188,212,0.5);
+        }
+        .grid-char.char-vision.lumon-small {
+            color: #80DEEA;
+            text-shadow: 0 0 12px rgba(128,222,234,0.5),
+                        0 0 25px rgba(77,208,225,0.3);
+        }
+
+        /* Vision collision - Purple/Magenta glow like conflicted numbers */
+        .grid-char.char-collision.lumon-large {
+            color: #E91E63;
+            text-shadow: 0 0 25px rgba(233,30,99,0.9),
+                        0 0 50px rgba(233,30,99,0.7),
+                        0 0 75px rgba(194,24,91,0.5);
+        }
+        .grid-char.char-collision.lumon-medium {
+            color: #F06292;
+            text-shadow: 0 0 18px rgba(240,98,146,0.7),
+                        0 0 35px rgba(233,30,99,0.5);
+        }
+        .grid-char.char-collision.lumon-small {
+            color: #F8BBD9;
+            text-shadow: 0 0 12px rgba(248,187,217,0.5),
+                        0 0 25px rgba(240,98,146,0.3);
+        }
+
+        /* Empty spaces - Subtle white/cyan glow */
+        .grid-char:not(.char-cat):not(.char-mouse):not(.char-obstacle):not(.char-vision):not(.char-collision).lumon-large {
+            color: #FFFFFF;
+            text-shadow: 0 0 20px rgba(127,233,225,0.6),
+                        0 0 40px rgba(127,233,225,0.4);
+        }
+        .grid-char:not(.char-cat):not(.char-mouse):not(.char-obstacle):not(.char-vision):not(.char-collision).lumon-medium {
+            color: rgba(255,255,255,0.9);
+            text-shadow: 0 0 15px rgba(127,233,225,0.4),
+                        0 0 30px rgba(127,233,225,0.3);
+        }
+        .grid-char:not(.char-cat):not(.char-mouse):not(.char-obstacle):not(.char-vision):not(.char-collision).lumon-small {
+            color: rgba(255,255,255,0.8);
+            text-shadow: 0 0 10px rgba(127,233,225,0.3),
+                        0 0 20px rgba(127,233,225,0.2);
         }
 
         /* Special effects for different character types */
@@ -954,7 +1085,7 @@
 
         .footer-container {
             position: absolute;
-            bottom: 7rem;
+            bottom: 10rem; /* Move footer 2 lines up */
             left: 50%;
             transform: translateX(-50%);
             z-index: 10;
@@ -1142,6 +1273,7 @@
                     <div style="margin-top: 1rem; padding-top: 1rem;">
                         <div class="button-row" style="margin-bottom: 1rem;">
                             <button class="btn btn-primary" id="startTraining">Start</button>
+                            <button class="btn btn-secondary" id="pauseTraining" style="display: none;">Pause</button>
                             <button class="btn btn-danger" id="stopTraining">Stop</button>
                             <button class="btn btn-secondary" id="continueTraining">Continue</button>
                             <button class="btn btn-secondary" id="newTraining" style="display: none;">New Training</button>
@@ -1914,6 +2046,59 @@
                             </div>
                         </div>
 
+                        <!-- Lumon Hover Effects -->
+                        <div style="margin-bottom: 1rem;">
+                            <h4 style="font-size: 0.8rem; margin-bottom: 0.5rem; color: #7FE9E1;">LUMON HOVER EFFECTS</h4>
+                            
+                            <div class="param-item">
+                                <div class="param-row">
+                                    <span class="param-label">Effect Radius:</span>
+                                    <span class="param-value inline-editable" data-type="number" data-min="50" data-max="300" data-input-id="lumonRadius" data-callback="updateNumericValue">200</span>px
+                                </div>
+                                <input type="range" id="lumonRadius" min="50" max="300" step="10" value="200" style="display: none;">
+                            </div>
+                            
+                            <div class="param-item">
+                                <div class="param-row">
+                                    <span class="param-label">Large Scale (5x zone):</span>
+                                    <span class="param-value inline-editable" data-type="number" data-min="0.1" data-max="0.5" data-input-id="lumonLargeThreshold" data-callback="updateNumericValue">0.2</span> (20%)
+                                </div>
+                                <input type="range" id="lumonLargeThreshold" min="0.1" max="0.5" step="0.05" value="0.2" style="display: none;">
+                            </div>
+                            
+                            <div class="param-item">
+                                <div class="param-row">
+                                    <span class="param-label">Medium Scale (3x zone):</span>
+                                    <span class="param-value inline-editable" data-type="number" data-min="0.2" data-max="0.7" data-input-id="lumonMediumThreshold" data-callback="updateNumericValue">0.4</span> (40%)
+                                </div>
+                                <input type="range" id="lumonMediumThreshold" min="0.2" max="0.7" step="0.05" value="0.4" style="display: none;">
+                            </div>
+                            
+                            <div class="param-item">
+                                <div class="param-row">
+                                    <span class="param-label">Small Scale (2x zone):</span>
+                                    <span class="param-value inline-editable" data-type="number" data-min="0.3" data-max="1.0" data-input-id="lumonSmallThreshold" data-callback="updateNumericValue">0.6</span> (60%)
+                                </div>
+                                <input type="range" id="lumonSmallThreshold" min="0.3" max="1.0" step="0.05" value="0.6" style="display: none;">
+                            </div>
+                            
+                            <div class="param-item">
+                                <div class="param-row">
+                                    <span class="param-label">Transition Speed:</span>
+                                    <span class="param-value inline-editable" data-type="number" data-min="0.05" data-max="0.5" data-input-id="lumonTransition" data-callback="updateNumericValue">0.1</span>s
+                                </div>
+                                <input type="range" id="lumonTransition" min="0.05" max="0.5" step="0.05" value="0.1" style="display: none;">
+                            </div>
+                            
+                            <div class="param-item">
+                                <div class="param-row">
+                                    <span class="param-label">Enable OLD Effects:</span>
+                                    <span class="param-value inline-editable" data-type="boolean" data-input-id="enableOldEffects" data-callback="updateBooleanValue">false</span>
+                                </div>
+                                <input type="checkbox" id="enableOldEffects" style="display: none;">
+                            </div>
+                        </div>
+
                         <!-- Character Customization -->
                         <div class="settings-section-compact settings-section-hidden" style="margin-bottom: 0.5rem;">
                             <div class="collapsible-title collapsed" id="charactersToggle" style="font-size: 0.7rem; margin-bottom: 0.3rem; color: #7FE9E1; cursor: pointer;">CHARACTERS</div>
@@ -1996,6 +2181,15 @@
                 this.gridWidth = 64;
                 this.gridHeight = 32;
                 this.grid = [];
+                
+                // Performance optimization flags
+                this.enablePerformanceMode = true;
+                this.frameCounter = 0;
+                this.performanceMonitor = {
+                    lastFrameTime: performance.now(),
+                    frameTimeHistory: [],
+                    averageFrameTime: 16.67 // Target: 60fps
+                };
                 
                 // Agent positions
                 this.catPos = { x: 0, y: 0 };
@@ -2086,6 +2280,7 @@
 
             initializeEventListeners() {
                 document.getElementById('startTraining').addEventListener('click', () => this.startTraining());
+                document.getElementById('pauseTraining').addEventListener('click', () => this.pauseTraining());
                 document.getElementById('stopTraining').addEventListener('click', () => this.stopTraining());
                 document.getElementById('continueTraining').addEventListener('click', () => this.continueTraining());
                 document.getElementById('newTraining').addEventListener('click', () => this.startNewTraining());
@@ -3996,82 +4191,198 @@
                 
                 const gridElement = document.getElementById('gameGrid');
                 
-                // Always use HTML rendering for mouse proximity effects
-                {
-                    let maxCatVisits = 1, maxMouseVisits = 1;
+                // Initialize grid DOM structure on first render or when dimensions change
+                if (!this.gridElements || this.lastGridWidth !== this.gridWidth || this.lastGridHeight !== this.gridHeight) {
+                    this.initializeGridDOM(gridElement);
+                    this.lastGridWidth = this.gridWidth;
+                    this.lastGridHeight = this.gridHeight;
+                }
+                
+                // Calculate heat map values if needed
+                let maxCatVisits = 1, maxMouseVisits = 1;
+                if (this.showHeatMap) {
+                    // Only recalculate max values every 100 renders for performance
+                    if (!this.heatMapCache || this.renderCount % 100 === 0) {
+                        const allCatVisits = Object.values(this.catHeatMap);
+                        const allMouseVisits = Object.values(this.mouseHeatMap);
+                        this.heatMapCache = {
+                            maxCatVisits: Math.max(...allCatVisits, 1),
+                            maxMouseVisits: Math.max(...allMouseVisits, 1)
+                        };
+                    }
                     
-                    // Only calculate heat map values if heat map is actually enabled
-                    if (this.showHeatMap) {
-                        // Only recalculate max values every 100 renders for performance
-                        if (!this.heatMapCache || this.renderCount % 100 === 0) {
-                            const allCatVisits = Object.values(this.catHeatMap);
-                            const allMouseVisits = Object.values(this.mouseHeatMap);
-                            this.heatMapCache = {
-                                maxCatVisits: Math.max(...allCatVisits, 1),
-                                maxMouseVisits: Math.max(...allMouseVisits, 1)
-                            };
-                        }
+                    // Use cached values
+                    maxCatVisits = this.heatMapCache.maxCatVisits;
+                    maxMouseVisits = this.heatMapCache.maxMouseVisits;
+                }
+                
+                // Update only changed cells
+                for (let y = 0; y < this.gridHeight; y++) {
+                    for (let x = 0; x < this.gridWidth; x++) {
+                        const currentChar = this.grid[y][x];
+                        const key = `${x},${y}`;
                         
-                        // Use cached values
-                        maxCatVisits = this.heatMapCache.maxCatVisits;
-                        maxMouseVisits = this.heatMapCache.maxMouseVisits;
-                    }
-                    
-                    // Create HTML with heat map backgrounds
-                    let gridHTML = '<pre style="margin: 0; font-family: inherit; line-height: inherit;">';
-                    for (let y = 0; y < this.gridHeight; y++) {
-                        for (let x = 0; x < this.gridWidth; x++) {
-                            // Only apply heat map colors if heat maps are enabled
-                            let backgroundColor = '';
-                            if (this.showHeatMap) {
-                                const key = `${x},${y}`;
-                                const catVisits = this.catHeatMap[key] || 0;
-                                const mouseVisits = this.mouseHeatMap[key] || 0;
+                        // Check if this cell has changed since last render
+                        if (!this.lastGrid || this.lastGrid[y][x] !== currentChar || 
+                            (this.showHeatMap && this.lastHeatMapRender !== this.renderCount)) {
+                            
+                            const span = this.gridElements[y][x];
+                            if (span) {
+                                // Update character content
+                                span.textContent = currentChar;
                                 
-                                // Use the agent with more visits for color
-                                if (catVisits > mouseVisits) {
-                                    backgroundColor = this.getHeatMapColor(catVisits, maxCatVisits, 'cat');
-                                } else if (mouseVisits > 0) {
-                                    backgroundColor = this.getHeatMapColor(mouseVisits, maxMouseVisits, 'mouse');
+                                // Update background color for heat map
+                                let backgroundColor = '';
+                                if (this.showHeatMap) {
+                                    const catVisits = this.catHeatMap[key] || 0;
+                                    const mouseVisits = this.mouseHeatMap[key] || 0;
+                                    
+                                    // Use the agent with more visits for color
+                                    if (catVisits > mouseVisits) {
+                                        backgroundColor = this.getHeatMapColor(catVisits, maxCatVisits, 'cat');
+                                    } else if (mouseVisits > 0) {
+                                        backgroundColor = this.getHeatMapColor(mouseVisits, maxMouseVisits, 'mouse');
+                                    }
                                 }
+                                span.style.backgroundColor = backgroundColor;
+                                
+                                // Update character type classes for special effects
+                                let charClass = 'grid-char';
+                                if (currentChar === (this.characterMap?.cat || 'C') || currentChar.startsWith('C')) {
+                                    charClass += ' char-cat';
+                                } else if (currentChar === (this.characterMap?.mouse || 'M') || currentChar.startsWith('M')) {
+                                    charClass += ' char-mouse';
+                                } else if (currentChar === (this.characterMap?.obstacle || 'O')) {
+                                    charClass += ' char-obstacle';
+                                } else if (currentChar === (this.characterMap?.unknown || '?')) {
+                                    charClass += ' char-vision';
+                                } else if (currentChar === (this.characterMap?.error || '!')) {
+                                    charClass += ' char-collision';
+                                }
+                                span.className = charClass;
                             }
-                            
-                            const char = this.grid[y][x];
-                            const style = backgroundColor ? `background-color: ${backgroundColor}` : '';
-                            
-                            // Determine character type for special effects
-                            let charClass = 'grid-char';
-                            if (char === (this.characterMap?.cat || 'C') || char.startsWith('C')) {
-                                charClass += ' char-cat';
-                            } else if (char === (this.characterMap?.mouse || 'M') || char.startsWith('M')) {
-                                charClass += ' char-mouse';
-                            } else if (char === (this.characterMap?.obstacle || 'O')) {
-                                charClass += ' char-obstacle';
-                            } else if (char === (this.characterMap?.unknown || '?')) {
-                                charClass += ' char-vision';
-                            } else if (char === (this.characterMap?.error || '!')) {
-                                charClass += ' char-collision';
-                            }
-                            
-                            gridHTML += `<span class="${charClass}" style="${style}" data-x="${x}" data-y="${y}">${char}</span>`;
                         }
-                        if (y < this.gridHeight - 1) gridHTML += '\n';
                     }
-                    gridHTML += '</pre>';
-                    
-                    gridElement.innerHTML = gridHTML;
-                    
-                    // Initialize mouse proximity effects
+                }
+                
+                // Store current grid state for next comparison
+                this.lastGrid = this.grid.map(row => [...row]);
+                if (this.showHeatMap) {
+                    this.lastHeatMapRender = this.renderCount;
+                }
+                
+                // Initialize mouse proximity effects only on first render or structure change
+                if (!this.proximityEffectsInitialized || this.renderCount === 0) {
+                    console.log('Initializing mouse proximity effects...');
                     this.initializeMouseProximityEffects();
+                    this.proximityEffectsInitialized = true;
+                }
+                
+                // Performance monitoring and adaptive optimization
+                this.frameCounter++;
+                if (this.enablePerformanceMode) {
+                    this.monitorPerformance();
                 }
                 
                 // Increment render counter for optimization timing
                 this.renderCount = (this.renderCount || 0) + 1;
             }
 
+            monitorPerformance() {
+                const now = performance.now();
+                const frameTime = now - this.performanceMonitor.lastFrameTime;
+                this.performanceMonitor.lastFrameTime = now;
+                
+                // Keep rolling average of last 60 frames
+                this.performanceMonitor.frameTimeHistory.push(frameTime);
+                if (this.performanceMonitor.frameTimeHistory.length > 60) {
+                    this.performanceMonitor.frameTimeHistory.shift();
+                }
+                
+                // Calculate average frame time
+                const sum = this.performanceMonitor.frameTimeHistory.reduce((a, b) => a + b, 0);
+                this.performanceMonitor.averageFrameTime = sum / this.performanceMonitor.frameTimeHistory.length;
+                
+                // Adaptive quality control - reduce effects if performance drops
+                if (this.performanceMonitor.averageFrameTime > 25) { // Below 40fps
+                    this.adaptiveQualityReduction();
+                } else if (this.performanceMonitor.averageFrameTime < 16) { // Above 60fps
+                    this.adaptiveQualityIncrease();
+                }
+            }
+
+            adaptiveQualityReduction() {
+                // Reduce proximity effect frequency
+                if (this.charPositionCache && this.charPositionCache.length > 1000) {
+                    // Skip every other character for proximity calculations
+                    this.charPositionCache = this.charPositionCache.filter((_, index) => index % 2 === 0);
+                }
+            }
+
+            adaptiveQualityIncrease() {
+                // Restore full quality if performance allows
+                if (this.charPositionCache && this.charPositionCache.length < this.gridWidth * this.gridHeight * 0.8) {
+                    // Rebuild full cache
+                    this.proximityEffectsInitialized = false;
+                }
+            }
+
+            initializeGridDOM(gridElement) {
+                // Create the grid structure once
+                let gridHTML = '<pre style="margin: 0; font-family: inherit; line-height: inherit;">';
+                this.gridElements = [];
+                
+                for (let y = 0; y < this.gridHeight; y++) {
+                    this.gridElements[y] = [];
+                    for (let x = 0; x < this.gridWidth; x++) {
+                        const char = this.grid[y][x];
+                        
+                        // Determine initial character type for special effects
+                        let charClass = 'grid-char';
+                        if (char === (this.characterMap?.cat || 'C') || char.startsWith('C')) {
+                            charClass += ' char-cat';
+                        } else if (char === (this.characterMap?.mouse || 'M') || char.startsWith('M')) {
+                            charClass += ' char-mouse';
+                        } else if (char === (this.characterMap?.obstacle || 'O')) {
+                            charClass += ' char-obstacle';
+                        } else if (char === (this.characterMap?.unknown || '?')) {
+                            charClass += ' char-vision';
+                        } else if (char === (this.characterMap?.error || '!')) {
+                            charClass += ' char-collision';
+                        }
+                        
+                        gridHTML += `<span class="${charClass}" data-x="${x}" data-y="${y}">${char}</span>`;
+                    }
+                    if (y < this.gridHeight - 1) gridHTML += '\n';
+                }
+                gridHTML += '</pre>';
+                
+                gridElement.innerHTML = gridHTML;
+                
+                // Cache DOM element references for fast access
+                for (let y = 0; y < this.gridHeight; y++) {
+                    for (let x = 0; x < this.gridWidth; x++) {
+                        const span = gridElement.querySelector(`span[data-x="${x}"][data-y="${y}"]`);
+                        this.gridElements[y][x] = span;
+                    }
+                }
+                
+                // Reset tracking variables
+                this.lastGrid = null;
+                this.proximityEffectsInitialized = false;
+                
+                // Rebuild spatial cache for proximity effects
+                if (this.buildUltraSpatialCache) {
+                    setTimeout(() => this.buildUltraSpatialCache(), 10);
+                }
+            }
+
             initializeMouseProximityEffects() {
                 const gridElement = document.getElementById('gameGrid');
-                if (!gridElement) return;
+                if (!gridElement) {
+                    console.warn('Grid element not found for proximity effects');
+                    return;
+                }
 
                 // Remove existing event listeners
                 if (this.proximityMouseHandler) {
@@ -4079,75 +4390,465 @@
                     gridElement.removeEventListener('mouseleave', this.proximityMouseLeaveHandler);
                 }
 
-                // Mouse proximity effect parameters
-                const radius = 80; // Effect radius in pixels
-                const maxScale = 1.4; // Maximum scale factor
-                const maxGlow = 2.0; // Maximum glow intensity
+                // Lumon hover effect parameters (read from new settings)
+                const radius = parseFloat(document.querySelector('[data-input-id="lumonRadius"]')?.textContent || '200');
+                const largeThreshold = parseFloat(document.querySelector('[data-input-id="lumonLargeThreshold"]')?.textContent || '0.2');
+                const mediumThreshold = parseFloat(document.querySelector('[data-input-id="lumonMediumThreshold"]')?.textContent || '0.4');
+                const smallThreshold = parseFloat(document.querySelector('[data-input-id="lumonSmallThreshold"]')?.textContent || '0.6');
+                const transitionSpeed = parseFloat(document.querySelector('[data-input-id="lumonTransition"]')?.textContent || '0.1');
+                const enableOldEffects = document.querySelector('[data-input-id="enableOldEffects"]')?.textContent?.toLowerCase() === 'true';
 
-                this.proximityMouseHandler = (event) => {
-                    const gridRect = gridElement.getBoundingClientRect();
-                    const mouseX = event.clientX - gridRect.left;
-                    const mouseY = event.clientY - gridRect.top;
+                console.log('Lumon settings:', { radius, largeThreshold, mediumThreshold, smallThreshold, transitionSpeed, enableOldEffects });
 
-                    // Cache character elements for performance
-                    const charElements = gridElement.querySelectorAll('.grid-char');
+                // Set CSS transition speed for Lumon effects
+                gridElement.style.setProperty('--lumon-transition', `${transitionSpeed}s`);
+
+                // Ultra-optimized tracking with spatial partitioning
+                this.activeChars = new Set();
+                this.charElementsCache = null;
+                this.gridRectCache = null;
+                this.spatialGrid = new Map();
+                this.gridSize = Math.max(radius / 3, 15); // Smaller cells for better precision
+                
+                let animationFrameId = null;
+                let lastMouseX = -1, lastMouseY = -1;
+                let frameCounter = 0;
+
+                // Build ultra-efficient spatial cache
+                this.buildUltraSpatialCache = () => {
+                    this.charElementsCache = gridElement.querySelectorAll('.grid-char');
+                    this.gridRectCache = gridElement.getBoundingClientRect();
+                    this.spatialGrid.clear();
                     
-                    charElements.forEach(charEl => {
-                        const charRect = charEl.getBoundingClientRect();
-                        const charCenterX = charRect.left + charRect.width / 2 - gridRect.left;
-                        const charCenterY = charRect.top + charRect.height / 2 - gridRect.top;
-
-                        // Calculate distance from mouse to character center
-                        const distance = Math.sqrt(
-                            Math.pow(mouseX - charCenterX, 2) + Math.pow(mouseY - charCenterY, 2)
-                        );
-
-                        if (distance <= radius) {
-                            // Calculate proximity factor (1 at center, 0 at radius)
-                            const proximityFactor = Math.max(0, 1 - (distance / radius));
-                            
-                            // Apply different falloff curves for different effects
-                            const exponentialFactor = Math.pow(proximityFactor, 2);
-                            const linearFactor = proximityFactor;
-                            
-                            // Calculate effect values
-                            const scale = 1 + (exponentialFactor * (maxScale - 1));
-                            const intensity = 0.8 + (linearFactor * 0.2);
-                            const glow = linearFactor * maxGlow;
-                            const weight = exponentialFactor;
-                            
-                            // Apply effects
-                            charEl.classList.add('proximity-active');
-                            charEl.style.setProperty('--char-scale', scale.toFixed(3));
-                            charEl.style.setProperty('--char-intensity', intensity.toFixed(3));
-                            charEl.style.setProperty('--char-glow', glow.toFixed(3));
-                            charEl.style.setProperty('--char-weight', weight.toFixed(3));
-                        } else {
-                            // Reset character to default state
-                            charEl.classList.remove('proximity-active');
-                            charEl.style.removeProperty('--char-scale');
-                            charEl.style.removeProperty('--char-intensity');
-                            charEl.style.removeProperty('--char-glow');
-                            charEl.style.removeProperty('--char-weight');
+                    this.charElementsCache.forEach((element) => {
+                        const rect = element.getBoundingClientRect();
+                        const centerX = rect.left + rect.width / 2 - this.gridRectCache.left;
+                        const centerY = rect.top + rect.height / 2 - this.gridRectCache.top;
+                        
+                        // Calculate grid cell
+                        const gridX = Math.floor(centerX / this.gridSize);
+                        const gridY = Math.floor(centerY / this.gridSize);
+                        const key = `${gridX},${gridY}`;
+                        
+                        if (!this.spatialGrid.has(key)) {
+                            this.spatialGrid.set(key, []);
                         }
+                        this.spatialGrid.get(key).push({
+                            element,
+                            centerX,
+                            centerY
+                        });
+                    });
+                    
+                    console.log(`Built spatial cache with ${this.spatialGrid.size} cells for ${this.charElementsCache.length} characters`);
+                };
+
+                // Build initial cache after DOM is ready
+                setTimeout(() => this.buildUltraSpatialCache(), 50);
+
+                // Ultra-fluid mouse handler with spatial optimization
+                this.proximityMouseHandler = (event) => {
+                    frameCounter++;
+                    
+                    // Initialize or update grid rect every 60 frames to handle window resize
+                    if (!this.gridRectCache || frameCounter % 60 === 0) {
+                        this.gridRectCache = gridElement.getBoundingClientRect();
+                    }
+
+                    const mouseX = event.clientX - this.gridRectCache.left;
+                    const mouseY = event.clientY - this.gridRectCache.top;
+                    
+                    // Minimal movement threshold to reduce excessive updates
+                    if (Math.abs(mouseX - lastMouseX) < 1 && Math.abs(mouseY - lastMouseY) < 1) return;
+                    
+                    lastMouseX = mouseX;
+                    lastMouseY = mouseY;
+
+                    // Cancel previous frame
+                    if (animationFrameId) {
+                        cancelAnimationFrame(animationFrameId);
+                    }
+
+                    // Use only Lumon effects (text pressure effects removed)
+                    animationFrameId = requestAnimationFrame(() => {
+                        // Always use new Lumon effects (no text pressure effects)
+                        this.updateProximityEffectsUltraSmooth(mouseX, mouseY, radius, largeThreshold, mediumThreshold, smallThreshold);
                     });
                 };
 
                 this.proximityMouseLeaveHandler = () => {
-                    // Reset all characters when mouse leaves grid
+                    if (animationFrameId) {
+                        cancelAnimationFrame(animationFrameId);
+                        animationFrameId = null;
+                    }
+                    
+                    // Reset all characters to default state
                     const charElements = gridElement.querySelectorAll('.grid-char');
-                    charElements.forEach(charEl => {
-                        charEl.classList.remove('proximity-active');
-                        charEl.style.removeProperty('--char-scale');
-                        charEl.style.removeProperty('--char-intensity');
-                        charEl.style.removeProperty('--char-glow');
-                        charEl.style.removeProperty('--char-weight');
+                    charElements.forEach(element => {
+                        element.classList.remove('lumon-large', 'lumon-medium', 'lumon-small', 'proximity-active');
                     });
+                    this.activeChars.clear();
                 };
 
-                // Add event listeners
-                gridElement.addEventListener('mousemove', this.proximityMouseHandler);
-                gridElement.addEventListener('mouseleave', this.proximityMouseLeaveHandler);
+                // Add event listeners with passive flag for better performance
+                gridElement.addEventListener('mousemove', this.proximityMouseHandler, { passive: true });
+                gridElement.addEventListener('mouseleave', this.proximityMouseLeaveHandler, { passive: true });
+                
+                console.log('Ultra-smooth mouse proximity effects initialized');
+            }
+
+            updateProximityEffectsUltraSmooth(mouseX, mouseY, radius, largeThresholdPercent, mediumThresholdPercent, smallThresholdPercent) {
+                // Lumon-style discrete scaling effect with configurable thresholds
+                const gridElement = document.getElementById('gameGrid');
+                if (!gridElement) return;
+
+                const charElements = gridElement.querySelectorAll('.grid-char');
+                if (charElements.length === 0) return;
+
+                // Use cached grid rect for consistency
+                const gridRect = this.gridRectCache || gridElement.getBoundingClientRect();
+                const newActiveChars = new Set();
+                
+                // Convert percentage thresholds to actual pixel distances
+                const largeThreshold = radius * largeThresholdPercent;
+                const mediumThreshold = radius * mediumThresholdPercent;
+                const smallThreshold = radius * smallThresholdPercent;
+
+                // Lumon thresholds calculated
+
+                // Optimized loop with discrete scaling levels
+                for (let i = 0; i < charElements.length; i++) {
+                    const charEl = charElements[i];
+                    const charRect = charEl.getBoundingClientRect();
+                    const charCenterX = charRect.left + charRect.width / 2 - gridRect.left;
+                    const charCenterY = charRect.top + charRect.height / 2 - gridRect.top;
+
+                    // Calculate distance
+                    const dx = mouseX - charCenterX;
+                    const dy = mouseY - charCenterY;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    // Remove all scaling classes first
+                    charEl.classList.remove('lumon-large', 'lumon-medium', 'lumon-small', 'proximity-active');
+                    
+                    // Apply Lumon-style discrete scaling with configurable thresholds
+                    if (distance <= largeThreshold) {
+                        charEl.classList.add('lumon-large', 'proximity-active');
+                        newActiveChars.add(charEl);
+                    } else if (distance <= mediumThreshold) {
+                        charEl.classList.add('lumon-medium', 'proximity-active');
+                        newActiveChars.add(charEl);
+                    } else if (distance <= smallThreshold) {
+                        charEl.classList.add('lumon-small', 'proximity-active');
+                        newActiveChars.add(charEl);
+                    }
+                }
+
+                // Update active chars tracking
+                this.activeChars = newActiveChars;
+            }
+
+            updateProximityEffectsOptimizedDirect(gridElement, mouseX, mouseY, radius, maxScale, maxGlow) {
+                const charElements = gridElement.querySelectorAll('.grid-char');
+                const gridRect = gridElement.getBoundingClientRect();
+                const newActiveChars = new Set();
+                const radiusSquared = radius * radius;
+                
+                let charsInRange = 0;
+                
+                // Optimized loop with early rejection
+                for (let i = 0; i < charElements.length; i++) {
+                    const charEl = charElements[i];
+                    const charRect = charEl.getBoundingClientRect();
+                    const charCenterX = charRect.left + charRect.width / 2 - gridRect.left;
+                    const charCenterY = charRect.top + charRect.height / 2 - gridRect.top;
+
+                    // Fast distance check with early rejection
+                    const dx = mouseX - charCenterX;
+                    const dy = mouseY - charCenterY;
+                    
+                    // Quick Manhattan distance check first
+                    if (Math.abs(dx) > radius || Math.abs(dy) > radius) continue;
+                    
+                    // Precise distance check
+                    const distanceSquared = dx * dx + dy * dy;
+                    if (distanceSquared > radiusSquared) continue;
+
+                    // Character is in range
+                    charsInRange++;
+                    newActiveChars.add(charEl);
+                    
+                    const distance = Math.sqrt(distanceSquared);
+                    const proximityFactor = 1 - (distance / radius);
+                    const exponentialFactor = proximityFactor * proximityFactor;
+                    
+                    // Calculate effects
+                    const scale = 1 + exponentialFactor * (maxScale - 1);
+                    const intensity = 0.8 + proximityFactor * 0.2;
+                    const glow = proximityFactor * maxGlow;
+                    const weight = 400 + Math.round(200 * exponentialFactor);
+                    
+                    // Apply effects efficiently
+                    charEl.classList.add('proximity-active');
+                    charEl.style.transform = `scale(${scale.toFixed(2)}) translateZ(0)`;
+                    charEl.style.color = `rgba(127,233,225,${intensity.toFixed(2)})`;
+                    charEl.style.textShadow = `0 0 ${Math.round(5*glow)}px rgba(127,233,225,${(intensity*0.3).toFixed(2)})`;
+                    charEl.style.fontWeight = weight;
+                }
+
+                // Reset inactive characters efficiently
+                this.activeChars.forEach(element => {
+                    if (!newActiveChars.has(element)) {
+                        element.classList.remove('proximity-active');
+                        element.style.cssText = '';
+                    }
+                });
+
+                this.activeChars = newActiveChars;
+            }
+
+            buildFluidPositionCache(gridElement) {
+                // Wait for rendering to complete
+                const charElements = gridElement.querySelectorAll('.grid-char');
+                console.log(`Found ${charElements.length} character elements for caching`);
+                
+                if (charElements.length === 0) {
+                    // Retry if no characters found
+                    console.log('No characters found, retrying in 50ms');
+                    setTimeout(() => this.buildFluidPositionCache(gridElement), 50);
+                    return;
+                }
+
+                // If we have very few elements, something is wrong - use direct method
+                if (charElements.length < 100) {
+                    console.log(`Only ${charElements.length} elements found, disabling cache`);
+                    this.charPositionCache = null;
+                    return;
+                }
+
+                // Cache grid rect once
+                this.gridRect = gridElement.getBoundingClientRect();
+                this.charPositionCache = [];
+
+                // Build optimized position cache
+                let validPositions = 0;
+                charElements.forEach((element, index) => {
+                    const rect = element.getBoundingClientRect();
+                    // Pre-calculate relative positions
+                    const centerX = rect.left + rect.width / 2 - this.gridRect.left;
+                    const centerY = rect.top + rect.height / 2 - this.gridRect.top;
+                    
+                    // Log first few positions to debug
+                    if (index < 3) {
+                        console.log(`Position ${index}: centerX=${centerX}, centerY=${centerY}`);
+                    }
+                    
+                    // Skip if position is invalid (still being laid out)
+                    if (centerX === 0 && centerY === 0 && index > 0) {
+                        console.log(`Skipping invalid position at index ${index}`);
+                        return;
+                    }
+                    
+                    this.charPositionCache.push({
+                        element,
+                        centerX,
+                        centerY
+                    });
+                    validPositions++;
+                });
+
+                console.log(`Fluid cache built: ${validPositions} valid positions out of ${charElements.length} elements`);
+                
+                // If we got very few valid positions, disable cache
+                if (validPositions < charElements.length * 0.5) {
+                    console.log('Too many invalid positions, disabling cache');
+                    this.charPositionCache = null;
+                }
+            }
+
+            updateProximityEffectsFluid(mouseX, mouseY, radius, maxScale, maxGlow) {
+                const radiusSquared = radius * radius;
+                const newActiveChars = new Set();
+                
+                let charsInRange = 0;
+                // Ultra-fast loop with minimal calculations
+                for (let i = 0; i < this.charPositionCache.length; i++) {
+                    const char = this.charPositionCache[i];
+                    
+                    // Fast distance check using Manhattan distance first (cheap early rejection)
+                    const dx = mouseX - char.centerX;
+                    const dy = mouseY - char.centerY;
+                    
+                    // Quick rejection for characters obviously too far
+                    if (Math.abs(dx) > radius || Math.abs(dy) > radius) continue;
+                    
+                    // Precise distance check only for nearby characters
+                    const distanceSquared = dx * dx + dy * dy;
+                    if (distanceSquared > radiusSquared) continue;
+
+                    // Character is in range - apply effects
+                    charsInRange++;
+                    newActiveChars.add(char.element);
+                    
+                    const distance = Math.sqrt(distanceSquared);
+                    const proximityFactor = 1 - (distance / radius); // Simplified, no Math.max needed
+                    const exponentialFactor = proximityFactor * proximityFactor;
+                    
+                    // Pre-calculate effect values
+                    const scale = 1 + exponentialFactor * (maxScale - 1);
+                    const intensity = 0.8 + proximityFactor * 0.2;
+                    const glow = proximityFactor * maxGlow;
+                    const weight = 400 + Math.round(200 * exponentialFactor);
+                    
+                    // Apply effects with optimized string interpolation
+                    const element = char.element;
+                    element.classList.add('proximity-active');
+                    element.style.transform = `scale(${scale.toFixed(2)}) translateZ(0)`;
+                    element.style.color = `rgba(127,233,225,${intensity.toFixed(2)})`;
+                    element.style.textShadow = `0 0 ${Math.round(5*glow)}px rgba(127,233,225,${(intensity*0.3).toFixed(2)})`;
+                    element.style.fontWeight = weight;
+                }
+                
+                if (charsInRange > 0) {
+                    console.log(`Fluid method: ${charsInRange} characters affected`);
+                }
+
+                // Efficiently reset only previously active characters that are no longer active
+                this.activeChars.forEach(element => {
+                    if (!newActiveChars.has(element)) {
+                        element.classList.remove('proximity-active');
+                        element.style.cssText = ''; // Fast bulk reset
+                    }
+                });
+
+                this.activeChars = newActiveChars;
+            }
+
+            cacheCharacterPositions(gridElement) {
+                const charElements = gridElement.querySelectorAll('.grid-char');
+                if (charElements.length === 0) {
+                    console.warn('No character elements found for caching');
+                    return;
+                }
+
+                this.charPositionCache = [];
+                const gridRect = gridElement.getBoundingClientRect();
+
+                charElements.forEach((charEl, index) => {
+                    const charRect = charEl.getBoundingClientRect();
+                    const centerX = charRect.left + charRect.width / 2 - gridRect.left;
+                    const centerY = charRect.top + charRect.height / 2 - gridRect.top;
+                    
+                    this.charPositionCache.push({
+                        element: charEl,
+                        centerX: centerX,
+                        centerY: centerY
+                    });
+                    
+                    // Log first few positions for debugging
+                    if (index < 5) {
+                        console.log(`Cached position ${index}: centerX=${centerX}, centerY=${centerY}`);
+                    }
+                });
+
+                console.log(`Cached ${this.charPositionCache.length} character positions`);
+            }
+
+            updateProximityEffectsDirect(gridElement, mouseX, mouseY, radius, maxScale, maxGlow) {
+                // Simple direct approach - less optimized but reliable
+                const charElements = gridElement.querySelectorAll('.grid-char');
+                const gridRect = gridElement.getBoundingClientRect();
+                const newActiveChars = new Set();
+                
+                let charsInRange = 0;
+                charElements.forEach((charEl, index) => {
+                    const charRect = charEl.getBoundingClientRect();
+                    const charCenterX = charRect.left + charRect.width / 2 - gridRect.left;
+                    const charCenterY = charRect.top + charRect.height / 2 - gridRect.top;
+
+                    const distance = Math.sqrt(
+                        Math.pow(mouseX - charCenterX, 2) + Math.pow(mouseY - charCenterY, 2)
+                    );
+
+                    if (distance <= radius) {
+                        charsInRange++;
+                        newActiveChars.add(charEl);
+                        const proximityFactor = Math.max(0, 1 - (distance / radius));
+                        const exponentialFactor = proximityFactor * proximityFactor;
+                        
+                        const scale = 1 + (exponentialFactor * (maxScale - 1));
+                        const intensity = 0.8 + (proximityFactor * 0.2);
+                        const glow = proximityFactor * maxGlow;
+                        
+                        charEl.classList.add('proximity-active');
+                        // Apply the actual effects now (not debug effects)
+                        charEl.style.transform = `scale(${scale.toFixed(2)}) translateZ(0)`;
+                        charEl.style.color = `rgba(127, 233, 225, ${intensity.toFixed(2)})`;
+                        charEl.style.textShadow = `0 0 ${(5 * glow).toFixed(0)}px rgba(127, 233, 225, ${(intensity * 0.3).toFixed(2)})`;
+                        charEl.style.fontWeight = `${400 + Math.round(200 * exponentialFactor)}`;
+                    }
+                });
+
+                // Reset inactive characters
+                this.activeChars.forEach(element => {
+                    if (!newActiveChars.has(element)) {
+                        element.classList.remove('proximity-active');
+                        element.style.cssText = ''; // Clear all styles at once
+                    }
+                });
+
+                this.activeChars = newActiveChars;
+            }
+
+            updateProximityEffectsOptimized(mouseX, mouseY, radius, maxScale, maxGlow) {
+                const radiusSquared = radius * radius;
+                const newActiveChars = new Set();
+                
+                console.log(`Optimized method: checking ${this.charPositionCache.length} cached positions at mouse ${mouseX}, ${mouseY}`);
+                
+                let charsInRange = 0;
+                for (let i = 0; i < this.charPositionCache.length; i++) {
+                    const char = this.charPositionCache[i];
+                    
+                    const dx = mouseX - char.centerX;
+                    const dy = mouseY - char.centerY;
+                    const distanceSquared = dx * dx + dy * dy;
+
+                    if (distanceSquared <= radiusSquared) {
+                        charsInRange++;
+                        newActiveChars.add(char.element);
+                        
+                        const distance = Math.sqrt(distanceSquared);
+                        const proximityFactor = Math.max(0, 1 - (distance / radius));
+                        const exponentialFactor = proximityFactor * proximityFactor;
+                        
+                        const scale = 1 + (exponentialFactor * (maxScale - 1));
+                        const intensity = 0.8 + (proximityFactor * 0.2);
+                        const glow = proximityFactor * maxGlow;
+                        
+                        console.log(`Applying optimized effects to char ${i}: scale=${scale}, distance=${distance}`);
+                        
+                        char.element.classList.add('proximity-active');
+                        // Use same obvious debug effects as direct method
+                        char.element.style.transform = `scale(3) translateZ(0)`;
+                        char.element.style.color = `red`;
+                        char.element.style.backgroundColor = `yellow`;
+                        char.element.style.fontSize = `30px`;
+                        char.element.style.fontWeight = `bold`;
+                    }
+                }
+                
+                console.log(`Optimized method: ${charsInRange} characters in range`);
+
+                // Reset inactive characters
+                this.activeChars.forEach(element => {
+                    if (!newActiveChars.has(element)) {
+                        element.classList.remove('proximity-active');
+                        element.style.cssText = '';
+                    }
+                });
+
+                this.activeChars = newActiveChars;
             }
 
             getState(agentPos, targetPos) {
@@ -4608,26 +5309,35 @@
                     // Update display with throttling for performance
                     this.updateGridDisplay();
                     
-                    // Throttle rendering during fast training (only render every 10th step)
-                    if (step % 10 === 0 || parseInt(document.getElementById('simulationSpeed').value) > 50) {
-                        this.renderGrid();
-                        this.updateStats();
-                    }
-                    
-                    // Check if episode ended
+                    // Check if episode ended first (before expensive rendering)
                     if (caught) {
                         this.catWins++;
                         break;
                     }
                     
-                    // Add delay based on speed setting and render mode
+                    // Adaptive rendering based on performance and speed settings
                     const speed = parseInt(document.getElementById('simulationSpeed').value);
                     const renderEnabled = document.getElementById('toggleRender').checked;
+                    const isSlowSpeed = speed > 50;
                     
+                    // Smart rendering throttling
+                    const shouldRender = renderEnabled && (
+                        isSlowSpeed || // Always render for slow speeds 
+                        step % (this.performanceMonitor.averageFrameTime > 20 ? 20 : 10) === 0 // Adaptive throttling
+                    );
+                    
+                    if (shouldRender) {
+                        this.renderGrid();
+                        if (step % 5 === 0) { // Update stats less frequently
+                            this.updateStats();
+                        }
+                    }
+                    
+                    // Performance-optimized delays
                     if (!renderEnabled) {
-                        // Turbo mode: minimal delays when rendering is disabled
-                        if (step % 100 === 0) {
-                            await new Promise(resolve => setTimeout(resolve, 1));
+                        // Turbo mode: yield control periodically for UI responsiveness
+                        if (step % 200 === 0) {
+                            await new Promise(resolve => requestAnimationFrame(resolve));
                         }
                     } else if (speed < 500) {
                         await new Promise(resolve => setTimeout(resolve, 500 - speed));
@@ -4750,9 +5460,23 @@
                 this.lockParameters(false);
                 this.updateButtonStates(); // Update buttons when training stops
                 
+                // Performance cleanup when stopping
+                if (this.activeChars) {
+                    this.activeChars.clear();
+                }
+                this.performanceMonitor.frameTimeHistory = [];
+                
                 // Show welcome screen when training stops
                 document.getElementById('gridView').style.display = 'none';
                 document.getElementById('welcomeScreen').style.display = 'flex';
+            }
+
+            pauseTraining() {
+                if (this.isTraining) {
+                    this.isPaused = true;
+                    document.getElementById('trainingStatus').textContent = 'Paused';
+                    this.updateButtonStates(); // Update buttons when training pauses
+                }
             }
             
             startNewTraining() {
@@ -5051,6 +5775,7 @@
             
             updateButtonStates() {
                 const startButton = document.getElementById('startTraining');
+                const pauseButton = document.getElementById('pauseTraining');
                 const stopButton = document.getElementById('stopTraining');
                 const continueButton = document.getElementById('continueTraining');
                 const newTrainingButton = document.getElementById('newTraining');
@@ -5065,24 +5790,36 @@
                 const isTrainingCompleted = !this.isTraining && !this.isPaused && hasExistingData && 
                                           document.getElementById('trainingStatus').textContent === 'Completed';
                 
-                if (this.isTraining) {
-                    // During training: hide Start/Continue/NewTraining/NewRound, show Stop
+                if (this.isTraining && !this.isPaused) {
+                    // During active training: show Pause and Stop, hide others
                     startButton.style.display = 'none';
+                    pauseButton.style.display = 'inline-block';
+                    stopButton.style.display = 'inline-block';
                     continueButton.style.display = 'none';
                     newTrainingButton.style.display = 'none';
                     newRoundButton.style.display = 'none';
-                    stopButton.style.display = 'inline-block';
-                } else if (isTrainingCompleted) {
-                    // Training completed: show Continue and New Round, hide Start/Stop/NewTraining
+                } else if (this.isTraining && this.isPaused) {
+                    // Training is paused: show Continue and Stop, hide others
                     startButton.style.display = 'none';
+                    pauseButton.style.display = 'none';
+                    stopButton.style.display = 'inline-block';
+                    continueButton.style.display = 'inline-block';
+                    newTrainingButton.style.display = 'none';
+                    newRoundButton.style.display = 'none';
+                    continueButton.textContent = 'Resume';
+                } else if (isTrainingCompleted) {
+                    // Training completed: show Continue and New Round, hide others
+                    startButton.style.display = 'none';
+                    pauseButton.style.display = 'none';
                     stopButton.style.display = 'none';
                     continueButton.style.display = 'inline-block';
                     newTrainingButton.style.display = 'none';
                     newRoundButton.style.display = 'inline-block';
                     continueButton.textContent = 'Continue';
                 } else if (hasExistingData && this.isPaused) {
-                    // Has data and is stopped: show Continue and New Training, hide Start/Stop/NewRound
+                    // Has data and is stopped: show Continue and New Training, hide others
                     startButton.style.display = 'none';
+                    pauseButton.style.display = 'none';
                     stopButton.style.display = 'none';
                     continueButton.style.display = 'inline-block';
                     newTrainingButton.style.display = 'inline-block';
@@ -5091,6 +5828,7 @@
                 } else if (hasExistingData) {
                     // Has data but not stopped: show Continue, hide others
                     startButton.style.display = 'none';
+                    pauseButton.style.display = 'none';
                     stopButton.style.display = 'none';
                     continueButton.style.display = 'inline-block';
                     newTrainingButton.style.display = 'none';
@@ -5099,6 +5837,7 @@
                 } else {
                     // No data and not training: show Start, hide others
                     startButton.style.display = 'inline-block';
+                    pauseButton.style.display = 'none';
                     stopButton.style.display = 'none';
                     continueButton.style.display = 'none';
                     newTrainingButton.style.display = 'none';
